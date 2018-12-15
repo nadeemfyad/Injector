@@ -1,0 +1,52 @@
+
+
+body{
+    background-color: rgb(165, 218, 251);
+    /* margin:0px !important; */
+    border-radius: 5px
+}
+#formWrapper{
+    width: 500px;
+    height: 150px;
+}
+
+#form span{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+#fileSource{
+    display: grid;
+    height: 23px;
+    font-size: 13px;
+    margin-top: 8px;
+    width: 490px;
+}
+
+#buttonWrapper{
+    text-align: -webkit-center;
+    display: flex;
+    justify-content: center;
+}
+
+#fileSubmit,#removeFile{
+    cursor: pointer;
+    width: 100px;
+    height: 22px;
+    background-color: white;
+    text-align: inherit;
+    padding-top: 7px;
+    margin:10px; 
+    border: 1px solid #0093ff;
+}
+
+#injectionDelay{
+    margin-top: 8px;
+    font-size: 11px;
+    width: 40px;
+    height: 20px;
+}
+
+.inputText{
+    outline: double;
+    outline-color: #0093ff;
+}
