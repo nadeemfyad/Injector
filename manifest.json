@@ -2,21 +2,23 @@
     "manifest_version": 2,
     "name": "Injector",
     "short_name":"*_TI_*",
-    "description": "Sources files and injects them authomatically.",
+    "description": "Sources files and injects them authomatically. For local files install npm package 'filesystem-server' ",
     "version": "0.0.01",
     "icons": {
-    
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
     },
     "browser_action": {
         "default_title": "Injector",
         "default_popup": "html/popup.html",
-        "default_action": "modules/background.js"
+        "default_icon": "icons/icon.png",
+        "default_action": "javascript/popup.js"
     },
     "content_scripts": [
         {
             "js": [
-                "chrome_extension.js",
-                "modules/index.js"
+                "javascript/index.js"
             ],
             "matches": [
                 "https://*/*",

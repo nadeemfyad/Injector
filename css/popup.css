@@ -1,7 +1,7 @@
 
 
 body{
-    background-color: rgb(165, 218, 251);
+    background-color: rgb(157, 201, 228);
     /* margin:0px !important; */
     border-radius: 5px
 }
@@ -10,8 +10,12 @@ body{
     height: 150px;
 }
 
-#form span{
+#fileForm span{
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+#fileForm{
+    margin-top: 20px;
 }
 
 #fileSource{
@@ -22,7 +26,7 @@ body{
     width: 490px;
 }
 
-#buttonWrapper{
+#buttonWrapper,#message{
     text-align: -webkit-center;
     display: flex;
     justify-content: center;
@@ -32,21 +36,66 @@ body{
     cursor: pointer;
     width: 100px;
     height: 22px;
-    background-color: white;
+    background-color: #ffc04d;
     text-align: inherit;
     padding-top: 7px;
     margin:10px; 
-    border: 1px solid #0093ff;
+    border: 1px solid #4b4b4b;
+    border-radius: 5px;
 }
 
-#injectionDelay{
-    margin-top: 8px;
+#injectorStatus{
+    display: flex;
+}
+#injectorBadge{
+    margin-top: 0px !important;
+}
+
+#injectorText{
+    margin-top: 1px !important;
+}
+
+#injectionDelay,#localhostPort{
     font-size: 11px;
     width: 40px;
     height: 20px;
 }
 
+#injectionDelay{
+    margin-top: 8px;
+}
+
+#localhostPort{
+    margin-left: 5px;
+    margin-right: 15px;
+}
+
+#connectionTable{
+    display: flex;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+}
+
+#connectionTable span{
+    margin-top: 5px;
+}
+
+#connectionBadge,#injectorBadge{
+    width: 14px;
+    height: 15px;
+    display: block;
+    border-radius: 100%;
+    border: solid 1px #505050;
+    margin-right: 4px;
+    margin-top: 5px;
+}
+
+#connectionStatus{
+    margin-top: 5px;
+    cursor: pointer;
+}
+
 .inputText{
-    outline: double;
-    outline-color: #0093ff;
+    outline: inset 1px #545454;
 }

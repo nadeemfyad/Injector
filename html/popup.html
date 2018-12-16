@@ -7,24 +7,40 @@
     <meta name="robots" content="noindex,nofollow">
 
     <link rel="stylesheet" href="/css/popup.css">
-    <script type='text/javascript' src='/modules/background.js'></script>
+    <script type='text/javascript' src='/javascript/popup.js'></script>
 </head>
 
 <body>
     <div id='formWrapper'>
         <div id='form'>
-            <span>Tag location</span>
-            <br>
-            <input id='fileSource' class='inputText' type="text" name="fileSource" placeholder="file location..." size="20" />
-            <br>
-            <span>Injection delay</span>
-            <br>
-            <input id='injectionDelay' class='inputText' type="text" name="injectionDelay" placeholder="1000" value='1000' size="5" />
-            <br>
-            <div id='footer'>
-                <div id='buttonWrapper'>
-                    <div id='fileSubmit' name="fileSubmit">Source file</div>
-                    <div id='removeFile' name="removeFile">Remove file</div>
+            <div id='header'>
+                <div id='injectorStatus'>
+                        <div id='injectorBadge'></div>
+                        <div id='injectorText'></div>
+                </div>
+                <div id='connectionTable'>
+                    <span>filesystem-server port: </span>
+                    <input id='localhostPort' class='inputText' type="text" name="localhostPort" placeholder="2222" value='2222' size="5" />
+                    <div id='connectionBadge'></div>
+                    <div id='connectionStatus'></div>
+                </div>
+            </div>
+            <div id='fileForm'>
+                <span>File location</span>
+
+                <br>
+                <input id='fileSource' class='inputText' type="text" name="fileSource" placeholder="file location..." size="20" />
+                <br>
+                <span>Injection delay</span>
+                <br>
+                <input id='injectionDelay' class='inputText' type="text" name="injectionDelay" placeholder="1000" value='1000' size="5" />
+                <br>
+                <div id='buttonFooter'>
+                    <div id='message'></div>
+                    <div id='buttonWrapper'>
+                        <div id='fileSubmit' name="fileSubmit">Inject file</div>
+                        <div id='removeFile' name="removeFile">Stop</div>
+                    </div>
                 </div>
             </div>
         </div>
