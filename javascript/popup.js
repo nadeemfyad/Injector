@@ -1,16 +1,22 @@
 
+document.addEventListener('DOMContentLoaded', async() => {
 
-document.addEventListener('DOMContentLoaded', () => {
+    setLocalStorage();
 
     testConnection();
 
     testInjectorStatus();
 
     const {
+        thisTab,
         injectionDelay,
         fileSource,
-        localhostPort
+        localhostPort,
+        hotReload
     } = getLocalStorage();
+
+    console.log(thisTab, fileSource);
+    // setTabDetails(fileSource);
 
     if (fileSource) setDOMElementProperty('fileSource', 'value', fileSource);
 
@@ -18,6 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (localhostPort) setDOMElementProperty('localhostPort', 'value', localhostPort);
 
+    if (hotReload) setDOMElementProperty('hotReload', 'checked', hotReload === 'true' ? true : false);
+
+
+    document.querySelectorAll('input').forEach(element => element.addEventListener('blur', () => {
+        console.log('blur');
+        setLocalStorage();
+    }));
 
     document.getElementById('fileSubmit').addEventListener('click', () => {
 
@@ -28,14 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
             localhostPort,
         } = getLocalStorage();
 
-        let {fileSource} = getLocalStorage();
+        let { fileSource } = getLocalStorage();
 
         if (isUrl(fileSource)) {
             sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay });
 
         } else if (!isUrl(fileSource) && testConnection()) {
-            const uriEncodedFileSource = encodeURIComponent(fileSource); 
+            const uriEncodedFileSource = encodeURIComponent(fileSource);
+
             fileSource = `http://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+            // console.log(fileSource);
+            // fileSource = `http://localhost:${localhostPort}${fileSource}`;
+
             sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay });
 
         } else {
@@ -51,16 +68,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('removeFile').addEventListener('click', () => {
         sendMessageToContent({ action: 'stopInjection' });
     });
+
+
+    document.getElementById('hotReload').addEventListener('change', (e) => {
+        console.log(e.target.checked);
+        const hotReload = e.target.checked;
+        setTabPropertyToStorage('hotReload',hotReload);
+        // sendMessageToContent({ action: 'stopInjection' });
+    });
+    
 });
+
 
 const testConnection = async () => {
     try {
-        const localhostPort = localStorage.getItem('localhostPort');
-        const url = `http://localhost:${localhostPort}/testConnection`;
+        const { localhostPort } = getLocalStorage();
+        const url = `http://localhost:${localhostPort}/testFSSConnection`;
         const res = await fetch(url);
         if (res.ok) {
             const json = await res.json();
-            if(json.fssConnected === 'true'){
+            if (json.fssConnected === 'true') {
                 setDOMElementProperty('connectionStatus', 'innerText', 'FSS CONNECTED');
                 setDOMElementProperty('connectionBadge', 'backgroundColor', '#00d000');
                 setDOMElementProperty('message', 'innerText', '');
@@ -87,57 +114,37 @@ const testInjectorStatus = async () => {
 };
 
 const sendMessageToContent = (args) => {
+    const fileSource = args.fileSource;
+
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+
+        console.log(`Current Tab Id: ${tabs[0].id}`);
+
         chrome.tabs.sendMessage(tabs[0].id, args, res => handleResponse(res));
     });
 };
 
 const handleResponse = (res) => {
     const isInjectorActive = res && res.isInjectorActive ? res.isInjectorActive : 'false';
-        console.log(isInjectorActive);
-        switch (isInjectorActive) {
-            case 'true':
-                setDOMElementProperty('injectorBadge', 'backgroundColor', '#00d000');
-                setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
-                chrome.browserAction.setBadgeBackgroundColor({color:[0, 208, 0,100]});
-                chrome.browserAction.setBadgeText({text:"ON"});
-                break;
-            case 'false':
-            default:
-                setDOMElementProperty('injectorBadge', 'backgroundColor', '#ff2f23');
-                setDOMElementProperty('injectorText', 'innerText', 'INJECTION INACTIVE');
-                chrome.browserAction.setBadgeBackgroundColor({color:[255, 47, 35,100]});
-                chrome.browserAction.setBadgeText({text:"OFF"});
-                break;
-        }
+    // console.log(isInjectorActive);
+    switch (isInjectorActive) {
+        case 'true':
+            setDOMElementProperty('injectorBadge', 'backgroundColor', '#00d000');
+            setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
+            chrome.browserAction.setBadgeBackgroundColor({ color: [0, 208, 0, 100] });
+            chrome.browserAction.setBadgeText({ text: "ON" });
+            break;
+        case 'false':
+        default:
+            setDOMElementProperty('injectorBadge', 'backgroundColor', '#ff2f23');
+            setDOMElementProperty('injectorText', 'innerText', 'INJECTION INACTIVE');
+            chrome.browserAction.setBadgeBackgroundColor({ color: [255, 47, 35, 100] });
+            chrome.browserAction.setBadgeText({ text: "OFF" });
+            break;
+    }
 
 };
 
-const setLocalStorage = () => {
-    const injectionDelay = document.getElementById('injectionDelay').value;
-    const localhostPort = document.getElementById('localhostPort').value;
-    const fileSource = document.getElementById('fileSource').value;
-
-    localStorage.setItem('injectionDelay', injectionDelay);
-    localStorage.setItem('localhostPort', localhostPort);
-    localStorage.setItem('fileSource', fileSource);
-
-    return;
-};
-
-const getLocalStorage = () => {
-    const injectionDelay = localStorage.getItem('injectionDelay');
-    const fileSource = localStorage.getItem('fileSource');
-    const localhostPort = localStorage.getItem('localhostPort');
-
-    return { injectionDelay, fileSource, localhostPort };
-};
-
-const removeLocalStorage = () => {
-    localStorage.removeItem('injectionDelay');
-    localStorage.removeItem('fileSource');
-    localStorage.removeItem('localhostPort', localhostPort);
-};
 
 const setDOMElementProperty = (nodeId, property, value) => {
     if (property === 'backgroundColor') {
@@ -148,6 +155,18 @@ const setDOMElementProperty = (nodeId, property, value) => {
 
 const isUrl = (string) => {
     const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
-    console.log(urlPattern.test(string));
+    // console.log(urlPattern.test(string));
     return urlPattern.test(string);
+};
+
+
+const getTabId = async () => {
+    const getTabId = new Promise( (resolve, reject) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            resolve(tabs[0].id);
+        });
+    });
+    const thisTab = await getTabId.then(tabId => tabId);
+    localStorage.setItem('thisTab', thisTab);
+    return thisTab;
 };

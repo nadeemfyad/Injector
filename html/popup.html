@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="/css/popup.css">
     <script type='text/javascript' src='/javascript/popup.js'></script>
+    <script type='text/javascript' src='/javascript/helpers/localStorage.js'></script>
 </head>
 
 <body>
@@ -15,8 +16,8 @@
         <div id='form'>
             <div id='header'>
                 <div id='injectorStatus'>
-                        <div id='injectorBadge'></div>
-                        <div id='injectorText'></div>
+                    <div id='injectorBadge'></div>
+                    <div id='injectorText'></div>
                 </div>
                 <div id='connectionTable'>
                     <span>filesystem-server port: </span>
@@ -31,9 +32,17 @@
                 <br>
                 <input id='fileSource' class='inputText' type="text" name="fileSource" placeholder="file location..." size="20" />
                 <br>
-                <span>Injection delay</span>
-                <br>
-                <input id='injectionDelay' class='inputText' type="text" name="injectionDelay" placeholder="1000" value='1000' size="5" />
+                <div id='config'>
+                    <div id='injectionDelayWrap'>
+                        <span>Injection delay</span>
+                        <br>
+                        <input id='injectionDelay' class='inputText' type="text" name="injectionDelay" placeholder="1000" value='1000' size="5" />
+                    </div>
+                    <div id='hotReloadWrap'>
+                        <span>Hot Reload</span>
+                        <input id='hotReload' class='checkbox' type="checkbox" name="hotReload" checked />
+                    </div>
+                </div>
                 <br>
                 <div id='buttonFooter'>
                     <div id='message'></div>

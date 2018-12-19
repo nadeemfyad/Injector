@@ -99,3 +99,12 @@ body{
 .inputText{
     outline: inset 1px #545454;
 }
+
+#config{
+    display: flex;
+}
+
+#hotReloadWrap{
+    margin-top: 27px;
+    margin-left: 20px;
+}

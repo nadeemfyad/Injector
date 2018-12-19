@@ -1,10 +1,9 @@
 
 
 document.addEventListener('DOMContentLoaded', function () {
-    chrome.extension.onMessage.addListener((msg, sender, sendResponse) => {
 
+    chrome.extension.onMessage.addListener((msg, sender, sendResponse) => {
         const { action } = msg;
-        // const isInjectorActive = localStorage.getItem('isInjectorActive');
         const {
             isInjectorActive,
         } = getLocalStorage();
