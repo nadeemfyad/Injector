@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', async() => {
         injectionDelay,
         fileSource,
         localhostPort,
-        hotReload
+        hotReload,
+        https,
     } = getLocalStorage();
 
     console.log(thisTab, fileSource);
@@ -26,9 +27,10 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     if (hotReload) setDOMElementProperty('hotReload', 'checked', hotReload === 'true' ? true : false);
 
+    if (https) setDOMElementProperty('https', 'checked', https === 'true' ? true : false);
+
 
     document.querySelectorAll('input').forEach(element => element.addEventListener('blur', () => {
-        console.log('blur');
         setLocalStorage();
     }));
 
@@ -39,6 +41,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         const {
             injectionDelay,
             localhostPort,
+            https,
         } = getLocalStorage();
 
         let { fileSource } = getLocalStorage();
@@ -48,8 +51,10 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         } else if (!isUrl(fileSource) && testConnection()) {
             const uriEncodedFileSource = encodeURIComponent(fileSource);
-
-            fileSource = `http://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+            const protocol = https ? 'https' : 'http'; 
+            
+            fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+            // fileSource = `https://localhost:4444/files/${uriEncodedFileSource}`;
             // console.log(fileSource);
             // fileSource = `http://localhost:${localhostPort}${fileSource}`;
 
@@ -71,10 +76,13 @@ document.addEventListener('DOMContentLoaded', async() => {
 
 
     document.getElementById('hotReload').addEventListener('change', (e) => {
-        console.log(e.target.checked);
         const hotReload = e.target.checked;
         setTabPropertyToStorage('hotReload',hotReload);
-        // sendMessageToContent({ action: 'stopInjection' });
+    });
+
+    document.getElementById('https').addEventListener('change', (e) => {
+        const https = e.target.checked;
+        setTabPropertyToStorage('https',https);
     });
     
 });
@@ -108,7 +116,7 @@ const testConnection = async () => {
         return false;
     }
 };
-
+// http://localhost:2222/files/%2FUsers%2Frecreate%2Fdev.js
 const testInjectorStatus = async () => {
     sendMessageToContent({ action: 'requestStatus' });
 };

@@ -5,6 +5,14 @@ body{
     /* margin:0px !important; */
     border-radius: 5px
 }
+#header {
+    display: flex;
+}
+
+#httpsWrap{
+    margin-left: 35px;
+}
+
 #formWrapper{
     width: 500px;
     height: 150px;

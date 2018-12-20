@@ -11,6 +11,7 @@
         const localhostPort = document.getElementById('localhostPort').value;
         const fileSource = document.getElementById('fileSource').value;
         const hotReload = document.getElementById('hotReload').checked;
+        const https = document.getElementById('https').checked;
         const thisTab = await getTabId();
         // console.log(localhostPort);
         const tabDetails = {
@@ -19,6 +20,7 @@
             fileSource,
             localhostPort,
             hotReload,
+            https,
         };
         allTabs[thisTab] = tabDetails;
 
@@ -40,7 +42,8 @@
         localStorage.removeItem('injectionDelay');
         localStorage.removeItem('fileSource');
         localStorage.removeItem('hotReload');
-        localStorage.removeItem('localhostPort', localhostPort);
+        localStorage.removeItem('localhostPort');
+        localStorage.removeItem('https');
     },
 
     setTabPropertyToStorage = (property,value) => {
@@ -61,6 +64,6 @@
         let thisTab = localStorage.getItem('thisTab');
         if(typeof allTabs === 'object' && allTabs[thisTab]){
             const tabDetails = allTabs[thisTab];
-            return { thisTab, injectionDelay, fileSource, localhostPort, hotReload } = tabDetails;
+            return { thisTab, injectionDelay, fileSource, localhostPort, hotReload, https } = tabDetails;
         } else return {};
     };
