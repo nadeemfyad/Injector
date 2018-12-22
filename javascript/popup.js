@@ -1,11 +1,17 @@
 
+
+
+
 document.addEventListener('DOMContentLoaded', async() => {
 
-    setLocalStorage();
+    await trimLocalStorageTabs();
 
-    testConnection();
+    const tabID = await getTabId();
+    localStorage.setItem('thisTab', tabID);
 
-    testInjectorStatus();
+    await testConnection();
+
+    await testInjectorStatus();
 
     const {
         thisTab,
@@ -16,8 +22,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         https,
     } = getLocalStorage();
 
-    console.log(thisTab, fileSource);
-    // setTabDetails(fileSource);
+    console.log(  thisTab, injectionDelay, fileSource, localhostPort, hotReload, https);
 
     if (fileSource) setDOMElementProperty('fileSource', 'value', fileSource);
 
@@ -25,9 +30,9 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     if (localhostPort) setDOMElementProperty('localhostPort', 'value', localhostPort);
 
-    if (hotReload) setDOMElementProperty('hotReload', 'checked', hotReload === 'true' ? true : false);
+    if (hotReload !== null) setDOMElementProperty('hotReload', 'checked', hotReload );
 
-    if (https) setDOMElementProperty('https', 'checked', https === 'true' ? true : false);
+    if (https  !== null ) setDOMElementProperty('https', 'checked', https );
 
 
     document.querySelectorAll('input').forEach(element => element.addEventListener('blur', () => {
@@ -42,26 +47,27 @@ document.addEventListener('DOMContentLoaded', async() => {
             injectionDelay,
             localhostPort,
             https,
+            thisTab,
+            hotReload,
         } = getLocalStorage();
 
         let { fileSource } = getLocalStorage();
 
+        initializeHotReload(fileSource,localhostPort, https,thisTab, hotReload);
+
         if (isUrl(fileSource)) {
-            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay });
+            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload });
 
         } else if (!isUrl(fileSource) && testConnection()) {
             const uriEncodedFileSource = encodeURIComponent(fileSource);
             const protocol = https ? 'https' : 'http'; 
             
             fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
-            // fileSource = `https://localhost:4444/files/${uriEncodedFileSource}`;
-            // console.log(fileSource);
-            // fileSource = `http://localhost:${localhostPort}${fileSource}`;
 
-            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay });
+            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload });
 
         } else {
-            setDOMElementProperty('message', 'innerText', '* start serverify to access filesystem');
+            setDOMElementProperty('message', 'innerText', '*npm filesystem-server to access filesystem');
         }
 
     });
@@ -74,55 +80,43 @@ document.addEventListener('DOMContentLoaded', async() => {
         sendMessageToContent({ action: 'stopInjection' });
     });
 
+    document.getElementById('injectionDelay').addEventListener('change', (e) => {
+        const injectionDelay = e.target.value;
+        setTabPropertyToStorage('injectionDelay',injectionDelay);
+    });
 
-    document.getElementById('hotReload').addEventListener('change', (e) => {
-        const hotReload = e.target.checked;
-        setTabPropertyToStorage('hotReload',hotReload);
+    document.getElementById('localhostPort').addEventListener('change', (e) => {
+        const localhostPort = e.target.value;
+        setTabPropertyToStorage('localhostPort',localhostPort);
+    });
+
+    document.getElementById('fileSource').addEventListener('change', (e) => {
+        const fileSource = e.target.value;
+        setTabPropertyToStorage('fileSource',fileSource);
     });
 
     document.getElementById('https').addEventListener('change', (e) => {
         const https = e.target.checked;
         setTabPropertyToStorage('https',https);
     });
+
+    document.getElementById('hotReload').addEventListener('change', (e) => {
+        const hotReload = e.target.checked;
+        const { thisTab,fileSource, localhostPort, https } = getLocalStorage();
+        setTabPropertyToStorage('hotReload',hotReload);
+        initializeHotReload(fileSource,localhostPort, https,thisTab, hotReload);
+    });
     
 });
 
-
-const testConnection = async () => {
-    try {
-        const { localhostPort } = getLocalStorage();
-        const url = `http://localhost:${localhostPort}/testFSSConnection`;
-        const res = await fetch(url);
-        if (res.ok) {
-            const json = await res.json();
-            if (json.fssConnected === 'true') {
-                setDOMElementProperty('connectionStatus', 'innerText', 'FSS CONNECTED');
-                setDOMElementProperty('connectionBadge', 'backgroundColor', '#00d000');
-                setDOMElementProperty('message', 'innerText', '');
-                console.log('connected');
-                return true;
-            } else {
-                setDOMElementProperty('connectionStatus', 'innerText', 'CLICK TO TRY AGAIN');
-                setDOMElementProperty('connectionBadge', 'backgroundColor', 'orange');
-                console.log('uncertain');
-                return false;
-            }
-        }
-    } catch (err) {
-        console.log(err);
-        setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
-        setDOMElementProperty('connectionBadge', 'backgroundColor', '#ff2f23');
-        console.log('not connected');
-        return false;
-    }
-};
-// http://localhost:2222/files/%2FUsers%2Frecreate%2Fdev.js
 const testInjectorStatus = async () => {
     sendMessageToContent({ action: 'requestStatus' });
 };
 
 const sendMessageToContent = (args) => {
-    const fileSource = args.fileSource;
+    // const fileSource = args.fileSource;
+
+    // const { thisTab } = getLocalStorage();
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
@@ -176,5 +170,13 @@ const getTabId = async () => {
     });
     const thisTab = await getTabId.then(tabId => tabId);
     localStorage.setItem('thisTab', thisTab);
+    console.log(`this tab id: ${thisTab}`);
     return thisTab;
 };
+
+const initializeHotReload = (fileSource,localhostPort, https,thisTab, hotReload) => {
+    if(fileSource && fileSource !== '' && fileSource !== undefined){
+        chrome.runtime.sendMessage({action: "reload",localhostPort, https,thisTab, fileSource, hotReload}, res => console.log(res));
+    }
+    return;
+}

@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "name": "Injector",
+    "name": "Hot Injector",
     "short_name":"*_TI_*",
     "description": "Sources files and injects them authomatically. For local files install npm package 'filesystem-server' ",
     "version": "0.0.01",

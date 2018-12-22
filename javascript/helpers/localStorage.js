@@ -1,17 +1,23 @@
 
-
-
-
+    
     const setLocalStorage =  async () => {
 
         let allTabs = getObjectFromStorage('allTabs');
-        console.log(allTabs);
+        // console.log(allTabs);
+        let {
+            injectionDelay,
+            fileSource,
+            localhostPort,
+            hotReload,
+            https,
+        } = getLocalStorage();
 
-        const injectionDelay = document.getElementById('injectionDelay').value;
-        const localhostPort = document.getElementById('localhostPort').value;
-        const fileSource = document.getElementById('fileSource').value;
-        const hotReload = document.getElementById('hotReload').checked;
-        const https = document.getElementById('https').checked;
+        injectionDelay = injectionDelay || document.getElementById('injectionDelay').value;
+        localhostPort = localhostPort || document.getElementById('localhostPort').value;
+        fileSource = fileSource || document.getElementById('fileSource').value;
+        hotReload = hotReload || document.getElementById('hotReload').checked;
+        https = https || document.getElementById('https').checked;
+
         const thisTab = await getTabId();
         // console.log(localhostPort);
         const tabDetails = {
@@ -26,7 +32,6 @@
 
         setObjectToStorage('allTabs', allTabs);
         localStorage.setItem('thisTab', thisTab);
-
     },
 
     getObjectFromStorage = (label) => {
@@ -38,13 +43,13 @@
         localStorage.setItem(label, JSON.stringify(object));
     },
 
-    removeLocalStorage = () => {
-        localStorage.removeItem('injectionDelay');
-        localStorage.removeItem('fileSource');
-        localStorage.removeItem('hotReload');
-        localStorage.removeItem('localhostPort');
-        localStorage.removeItem('https');
-    },
+    // removeLocalStorage = () => {
+    //     localStorage.removeItem('injectionDelay');
+    //     localStorage.removeItem('fileSource');
+    //     localStorage.removeItem('hotReload');
+    //     localStorage.removeItem('localhostPort');
+    //     localStorage.removeItem('https');
+    // },
 
     setTabPropertyToStorage = (property,value) => {
         let allTabs = localStorage.getItem('allTabs');

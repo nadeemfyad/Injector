@@ -1,72 +1,71 @@
 
 
-
-chrome.tabs.onRemoved.addListener(function(tabid, removed) {
+chrome.tabs.onRemoved.addListener(function (tabid, removed) {
     let allTabs = localStorage.getItem('allTabs');
 
-    if(allTabs && allTabs !== ''){
+    if (allTabs && allTabs !== '') {
         allTabs = JSON.parse(allTabs);
 
         console.log(`${tabid} closed, removing it..`);
 
-        if(allTabs.hasOwnProperty([tabid])){
+        if (allTabs.hasOwnProperty([tabid])) {
             delete allTabs[tabid];
             console.log(allTabs);
-            localStorage.setItem('allTabs',JSON.stringify(allTabs));
+            localStorage.setItem('allTabs', JSON.stringify(allTabs));
         }
     } else return;
+
 });
 
+chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+    const { action, localhostPort, https, thisTab, fileSource, hotReload } = req;
+    if (action === 'reload') {
+        console.log(req);
+        toggleHotReload({ localhostPort, https, thisTab, fileSource, hotReload });
+    }
+});
 
+const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotReload }) => {
+    const protocol = https ? 'https' : 'http';
+    const url = `${protocol}://localhost:${localhostPort}/hotReload/`;
+    const payLoad = {
+        fileSource,
+        hotReload,
+        thisTab,
+        localhostPort,
+        https,
+    };
+    makeHotReloadRequest(url, payLoad, thisTab);
+},
 
-// let allTabs = localStorage.getItem('allTabs');
-/*
-On startup, connect to the "ping_pong" app.
-*/
+    makeHotReloadRequest = async (url, payLoad, thisTab) => {
 
-// var port = chrome.runtime.connectNative("com.recreate.filesystem_server");
-// if (port)
-//     {
-//        console.log("connectNative() returned a non-null port ->",port.name);
-//     }
-// chrome.runtime.sendNativeMessage('com.recreate.filesystem_server', {msg:'recreate message!'}, (res)=>{
-//     var lastError = chrome.runtime.lastError;
-//     if (lastError) {
-//         console.log(lastError.message);
-//         // 'Could not establish connection. Receiving end does not exist.'
-//         return;
-//     }
-//     console.log('sent');
-//     console.log(res);
-//     return true;
-// });
+        const res = await fetch(url,
+            {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                body: JSON.stringify(payLoad),
+            });
 
-// port.onDisconnect.addListener( (port)=>{
-//     console.log('disconnected');
-//     console.log(port);
-//     if (port)
-//     {
-//        console.log("disconnected() returned a non-null port ->",port.name);
-//     }
-// });
+        if (res.ok) {
+            const json = await res.json();
+            console.log(json);
+            const {
+                hotReload,
+                error,
+            } = json;
+            if (hotReload && !error) {
+                reloadTab(thisTab);
+                await makeHotReloadRequest(url, payLoad);
+            }
+        }
+    },
 
-/*
-Listen for messages from the app.
-*/
-// if (port)
-// console.log(port);
-
-// port.onMessage.addListener((response) => {
-//   console.log("Received: " + response);
-//   return true;
-// });
-
-// port.postMessage({'value':'ciao'});
-
-/*
-On a click on the browser action, send the app a message.
-// */
-// chrome.browserAction.onClicked.addListener(() => {
-//   console.log("Sending:  ping");
-//   port.postMessage("ping");
-// });
+    reloadTab = (thisTab) => {
+        console.log(`reload Tab: ${thisTab}`);
+        // sendMessageToContent({ action: 'reloadTab' })
+        chrome.tabs.sendMessage(thisTab, { action: "reloadTab" }, function (response) { });
+    };
