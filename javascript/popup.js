@@ -2,7 +2,7 @@
 
 
 
-document.addEventListener('DOMContentLoaded', async() => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     await trimLocalStorageTabs();
 
@@ -20,9 +20,12 @@ document.addEventListener('DOMContentLoaded', async() => {
         localhostPort,
         hotReload,
         https,
+        watchJSON,
     } = getLocalStorage();
 
-    console.log(  thisTab, injectionDelay, fileSource, localhostPort, hotReload, https);
+    console.log(watchJSON);
+
+    console.log(thisTab, injectionDelay, fileSource, localhostPort, hotReload, https, watchJSON);
 
     if (fileSource) setDOMElementProperty('fileSource', 'value', fileSource);
 
@@ -30,83 +33,72 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     if (localhostPort) setDOMElementProperty('localhostPort', 'value', localhostPort);
 
-    if (hotReload !== null) setDOMElementProperty('hotReload', 'checked', hotReload );
+    if (hotReload !== null) setDOMElementProperty('hotReload', 'checked', hotReload);
 
-    if (https  !== null ) setDOMElementProperty('https', 'checked', https );
+    if (https !== null) setDOMElementProperty('https', 'checked', https);
+
+    if (watchJSON !== null) setDOMElementProperty('watchJSON', 'checked', watchJSON);
 
 
     document.querySelectorAll('input').forEach(element => element.addEventListener('blur', () => {
         setLocalStorage();
     }));
 
-    document.getElementById('fileSubmit').addEventListener('click', () => {
-
-        setLocalStorage();
-
-        const {
-            injectionDelay,
-            localhostPort,
-            https,
-            thisTab,
-            hotReload,
-        } = getLocalStorage();
-
-        let { fileSource } = getLocalStorage();
-
-        initializeHotReload(fileSource,localhostPort, https,thisTab, hotReload);
-
-        if (isUrl(fileSource)) {
-            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload });
-
-        } else if (!isUrl(fileSource) && testConnection()) {
-            const uriEncodedFileSource = encodeURIComponent(fileSource);
-            const protocol = https ? 'https' : 'http'; 
-            
-            fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
-
-            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload });
-
-        } else {
-            setDOMElementProperty('message', 'innerText', '*npm filesystem-server to access filesystem');
-        }
-
-    });
-
     document.getElementById('connectionStatus').addEventListener('click', () => {
         testConnection();
     });
 
-    document.getElementById('removeFile').addEventListener('click', () => {
-        sendMessageToContent({ action: 'stopInjection' });
-    });
-
     document.getElementById('injectionDelay').addEventListener('change', (e) => {
         const injectionDelay = e.target.value;
-        setTabPropertyToStorage('injectionDelay',injectionDelay);
+        setTabPropertyToStorage('injectionDelay', injectionDelay);
     });
 
     document.getElementById('localhostPort').addEventListener('change', (e) => {
         const localhostPort = e.target.value;
-        setTabPropertyToStorage('localhostPort',localhostPort);
+        setTabPropertyToStorage('localhostPort', localhostPort);
     });
 
     document.getElementById('fileSource').addEventListener('change', (e) => {
         const fileSource = e.target.value;
-        setTabPropertyToStorage('fileSource',fileSource);
+        setTabPropertyToStorage('fileSource', fileSource);
     });
 
     document.getElementById('https').addEventListener('change', (e) => {
         const https = e.target.checked;
-        setTabPropertyToStorage('https',https);
+        setTabPropertyToStorage('https', https);
     });
 
     document.getElementById('hotReload').addEventListener('change', (e) => {
         const hotReload = e.target.checked;
-        const { thisTab,fileSource, localhostPort, https } = getLocalStorage();
-        setTabPropertyToStorage('hotReload',hotReload);
-        initializeHotReload(fileSource,localhostPort, https,thisTab, hotReload);
+        const { thisTab, fileSource, localhostPort, https, watchJSON } = getLocalStorage();
+        setTabPropertyToStorage('hotReload', hotReload);
+        initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
     });
-    
+
+    document.getElementById('watchJSON').addEventListener('change', (e) => {
+        const watchJSON = e.target.checked;
+        const fssConnected = localStorage.getItem('fss-connected');
+        const { thisTab, fileSource, localhostPort, https } = getLocalStorage();
+        setTabPropertyToStorage('watchJSON', watchJSON);
+        console.log(fssConnected);
+        if (fssConnected === 'false') setDOMElementProperty('injectFile', 'checked', false);
+        initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
+    });
+
+    document.getElementById('injectFile').addEventListener('change', (e) => {
+        const injectFile = e.target.checked;
+        console.log(injectFile);
+        switch (injectFile) {
+            case true:
+                injectFileON();
+                break;
+            case false:
+            default:
+                sendMessageToContent({ action: 'stopInjection' });
+                break;
+        }
+    });
+
 });
 
 const testInjectorStatus = async () => {
@@ -114,9 +106,6 @@ const testInjectorStatus = async () => {
 };
 
 const sendMessageToContent = (args) => {
-    // const fileSource = args.fileSource;
-
-    // const { thisTab } = getLocalStorage();
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
@@ -128,11 +117,13 @@ const sendMessageToContent = (args) => {
 
 const handleResponse = (res) => {
     const isInjectorActive = res && res.isInjectorActive ? res.isInjectorActive : 'false';
-    // console.log(isInjectorActive);
+    const fssConnected = localStorage.getItem('fss-connected');
     switch (isInjectorActive) {
         case 'true':
-            setDOMElementProperty('injectorBadge', 'backgroundColor', '#00d000');
+            setDOMElementProperty('injectorBadge', 'backgroundColor', '#4F9FA7');
             setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
+            if (fssConnected) setDOMElementProperty('injectFile', 'checked', true);
+            else setDOMElementProperty('injectFile', 'checked', false);
             chrome.browserAction.setBadgeBackgroundColor({ color: [0, 208, 0, 100] });
             chrome.browserAction.setBadgeText({ text: "ON" });
             break;
@@ -140,6 +131,8 @@ const handleResponse = (res) => {
         default:
             setDOMElementProperty('injectorBadge', 'backgroundColor', '#ff2f23');
             setDOMElementProperty('injectorText', 'innerText', 'INJECTION INACTIVE');
+            setDOMElementProperty('injectFile', 'checked', false);
+            setDOMElementProperty('error', 'innerText', 'injection inactive');
             chrome.browserAction.setBadgeBackgroundColor({ color: [255, 47, 35, 100] });
             chrome.browserAction.setBadgeText({ text: "OFF" });
             break;
@@ -163,7 +156,7 @@ const isUrl = (string) => {
 
 
 const getTabId = async () => {
-    const getTabId = new Promise( (resolve, reject) => {
+    const getTabId = new Promise((resolve, reject) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             resolve(tabs[0].id);
         });
@@ -174,9 +167,50 @@ const getTabId = async () => {
     return thisTab;
 };
 
-const initializeHotReload = (fileSource,localhostPort, https,thisTab, hotReload) => {
-    if(fileSource && fileSource !== '' && fileSource !== undefined){
-        chrome.runtime.sendMessage({action: "reload",localhostPort, https,thisTab, fileSource, hotReload}, res => console.log(res));
+const initializeHotReload = (fileSource, localhostPort, https, thisTab, hotReload, watchJSON) => {
+    if (fileSource && fileSource !== '' && fileSource !== undefined) {
+        chrome.runtime.sendMessage({ action: "reload", localhostPort, https, thisTab, fileSource, hotReload, watchJSON }, res => console.log(res));
     }
     return;
-}
+};
+
+
+const injectFileON = () => {
+    const isConnectionActive = testConnection();
+    if(isConnectionActive){
+        setLocalStorage();
+
+        const {
+            injectionDelay,
+            localhostPort,
+            https,
+            thisTab,
+            hotReload,
+            watchJSON,
+        } = getLocalStorage();
+    
+        let { fileSource } = getLocalStorage();
+    
+        initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
+    
+        if (isUrl(fileSource)) {
+            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
+    
+        } else if (!isUrl(fileSource) && testConnection()) {
+            const uriEncodedFileSource = encodeURIComponent(fileSource);
+            const protocol = https ? 'https' : 'http';
+    
+            fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+    
+            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
+    
+        } else {
+            setDOMElementProperty('message', 'innerText', '*npm filesystem-server to access filesystem');
+        }
+    } else {
+
+        setDOMElementProperty('injectFile', 'checked', false);
+        setDOMElementProperty('error', 'innerText', 'filesystem-server not connected');
+    }
+   
+};

@@ -1,5 +1,4 @@
 
-
 document.addEventListener('DOMContentLoaded', function () {
 
     chrome.extension.onMessage.addListener((msg, sender, sendResponse) => {
@@ -7,16 +6,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const {
             isInjectorActive,
         } = getLocalStorage();
-        console.log(action);
-        console.log(isInjectorActive);
+        // console.log(action);
+        // console.log(isInjectorActive);
         switch (action) {
             case 'setFileSource':
                 handleFileInjection(msg);
-                sendResponse({isInjectorActive : 'true'});
+                sendResponse({ isInjectorActive: 'true' });
                 break;
             case 'stopInjection':
                 removeFile();
-                sendResponse({isInjectorActive : 'false'});
+                sendResponse({ isInjectorActive: 'false' });
                 break;
             case 'reloadTab':
                 reloadTab();
@@ -24,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
             case 'requestStatus':
             default:
                 console.log('requestStatus');
-                sendResponse({isInjectorActive: isInjectorActive});
+                sendResponse({ isInjectorActive: isInjectorActive });
                 break;
         }
     });
@@ -40,10 +39,10 @@ const handleFileInjection = (args) => {
     const {
         fileSource,
         injectionDelay,
-        hotReload,
+        // hotReload,
     } = args;
     console.log(args);
-    setLocalStorage(fileSource, injectionDelay, hotReload);
+    setLocalStorage(fileSource, injectionDelay);
     injectTag();
 };
 
@@ -53,16 +52,11 @@ const injectTag = () => {
         isInjectorActive,
         fileStorage,
         injectionDelay,
-        hotReload,
     } = getLocalStorage();
 
     if (isInjectorActive && doesExists(fileStorage)) {
 
-        
-
-        // initializeHotReload(fileSource,localhostPort, https,thisTab, hotReload);
-
-            console.log(fileStorage);
+        console.log(fileStorage);
         setTimeout(() => {
 
             const script = document.createElement('script');
@@ -80,33 +74,27 @@ const removeFile = () => {
     localStorage.setItem('isInjectorActive', 'false');
     localStorage.removeItem('injectorFileSource');
     localStorage.removeItem('injectorDelay');
-    localStorage.removeItem('injectorhotReload');
+    // localStorage.removeItem('injectorhotReload');
 };
 
-const setLocalStorage = (fileSource, injectionDelay, hotReload) => {
+const setLocalStorage = (fileSource, injectionDelay) => {
     localStorage.setItem('isInjectorActive', 'true');
     localStorage.setItem('injectorFileSource', fileSource);
-    localStorage.setItem('injectorhotReload', hotReload);
+    // localStorage.setItem('injectorhotReload', hotReload);
     localStorage.setItem('injectorDelay', injectionDelay);
+
 };
 
 const getLocalStorage = () => {
     const isInjectorActive = localStorage.getItem('isInjectorActive') || 'false';
     const fileStorage = localStorage.getItem('injectorFileSource');
     const injectionDelay = localStorage.getItem('injectorDelay');
-    const hotReload = localStorage.getItem('injectorhotReload');
-    return { isInjectorActive, fileStorage, injectionDelay, hotReload };
+    // const hotReload = localStorage.getItem('injectorhotReload');
+    return { isInjectorActive, fileStorage, injectionDelay };
 };
 
 const doesExists = (arg) => {
     return arg && arg !== undefined && arg !== '';
-};
-
-const initializeHotReload = (fileSource,localhostPort, https,thisTab, hotReload) => {
-    if(fileSource && fileSource !== '' && fileSource !== undefined){
-        chrome.runtime.sendMessage({action: "reload",localhostPort, https,thisTab, fileSource, hotReload}, res => console.log(res));
-    }
-    return;
 };
 
 injectTag();

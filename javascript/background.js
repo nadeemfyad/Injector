@@ -1,5 +1,4 @@
 
-
 chrome.tabs.onRemoved.addListener(function (tabid, removed) {
     let allTabs = localStorage.getItem('allTabs');
 
@@ -10,7 +9,7 @@ chrome.tabs.onRemoved.addListener(function (tabid, removed) {
 
         if (allTabs.hasOwnProperty([tabid])) {
             delete allTabs[tabid];
-            console.log(allTabs);
+            // console.log(allTabs);
             localStorage.setItem('allTabs', JSON.stringify(allTabs));
         }
     } else return;
@@ -18,14 +17,17 @@ chrome.tabs.onRemoved.addListener(function (tabid, removed) {
 });
 
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
-    const { action, localhostPort, https, thisTab, fileSource, hotReload } = req;
+    const { action } = req;
     if (action === 'reload') {
+        const { localhostPort, https, thisTab, fileSource, hotReload, watchJSON } = req;
         console.log(req);
-        toggleHotReload({ localhostPort, https, thisTab, fileSource, hotReload });
+        toggleHotReload({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON });
+    } else if (action === 'error'){
+        console.log(error);
     }
 });
 
-const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotReload }) => {
+const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON }) => {
     const protocol = https ? 'https' : 'http';
     const url = `${protocol}://localhost:${localhostPort}/hotReload/`;
     const payLoad = {
@@ -34,11 +36,12 @@ const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotR
         thisTab,
         localhostPort,
         https,
+        watchJSON,
     };
-    makeHotReloadRequest(url, payLoad, thisTab);
+    makeHotReloadRequest(url, payLoad);
 },
 
-    makeHotReloadRequest = async (url, payLoad, thisTab) => {
+    makeHotReloadRequest = async (url, payLoad) => {
 
         const res = await fetch(url,
             {
@@ -52,14 +55,20 @@ const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotR
 
         if (res.ok) {
             const json = await res.json();
-            console.log(json);
+            // console.log(json);
             const {
                 hotReload,
                 error,
+                thisTab,
             } = json;
             if (hotReload && !error) {
                 reloadTab(thisTab);
-                await makeHotReloadRequest(url, payLoad);
+                try {
+                    await makeHotReloadRequest(url, payLoad);
+                }catch(err){
+                    console.log(err);
+                }
+            
             }
         }
     },

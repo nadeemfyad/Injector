@@ -1,7 +1,11 @@
 
-
+html{
+    margin: 0;
+    height: 100%;
+    padding:0;
+  }
 body{
-    background-color: rgb(157, 201, 228);
+    /* background-color: #4f9fa7; */
     /* margin:0px !important; */
     border-radius: 5px
 }
@@ -15,7 +19,7 @@ body{
 
 #formWrapper{
     width: 500px;
-    height: 150px;
+    /* height: 150px; */
 }
 
 #fileForm span{
@@ -34,10 +38,18 @@ body{
     width: 490px;
 }
 
-#buttonWrapper,#message{
+#buttonWrapper,#message,#error{
     text-align: -webkit-center;
     display: flex;
     justify-content: center;
+
+}
+
+#error{
+    color: red;
+    font-weight: 600;
+    margin-bottom: 8px;
+    height: 15px !important;
 }
 
 #fileSubmit,#removeFile{
@@ -112,7 +124,8 @@ body{
     display: flex;
 }
 
-#hotReloadWrap{
+#hotReloadWrap,#watchJSONWrap{
     margin-top: 27px;
     margin-left: 20px;
+    margin-right: 20px;
 }

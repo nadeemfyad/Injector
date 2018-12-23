@@ -7,6 +7,7 @@
     <meta name="robots" content="noindex,nofollow">
 
     <link rel="stylesheet" href="/css/popup.css">
+    <link rel="stylesheet" href="/css/toggle.css">
     <script type='text/javascript' src='/javascript/helpers/utils.js'></script>
     <script type='text/javascript' src='/javascript/helpers/localStorage.js'></script>
     <script type='text/javascript' src='/javascript/helpers/sendRequests.js'></script>
@@ -48,13 +49,22 @@
                         <span>Hot Reload</span>
                         <input id='hotReload' class='checkbox' type="checkbox" name="hotReload" />
                     </div>
+                    <div id='watchJSONWrap'>
+                            <span>Watch JSON</span>
+                            <input id='watchJSON' class='checkbox' type="checkbox" name="watchJSON" />
+                        </div>
                 </div>
-                <br>
                 <div id='buttonFooter'>
                     <div id='message'></div>
+                    <div id='error'>$nbsp;</div>
                     <div id='buttonWrapper'>
-                        <div id='fileSubmit' name="fileSubmit">Inject file</div>
-                        <div id='removeFile' name="removeFile">Stop</div>
+                            <div class="onoffswitch">
+                                    <input type="checkbox" name="https" class="onoffswitch-checkbox" id="injectFile">
+                                    <label class="onoffswitch-label" for="injectFile">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                            </div>
                     </div>
                 </div>
             </div>

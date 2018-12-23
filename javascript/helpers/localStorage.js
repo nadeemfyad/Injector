@@ -10,6 +10,7 @@
             localhostPort,
             hotReload,
             https,
+            watchJSON,
         } = getLocalStorage();
 
         injectionDelay = injectionDelay || document.getElementById('injectionDelay').value;
@@ -17,9 +18,10 @@
         fileSource = fileSource || document.getElementById('fileSource').value;
         hotReload = hotReload || document.getElementById('hotReload').checked;
         https = https || document.getElementById('https').checked;
+        watchJSON = watchJSON || document.getElementById('watchJSON').checked;
 
         const thisTab = await getTabId();
-        // console.log(localhostPort);
+     
         const tabDetails = {
             thisTab,
             injectionDelay,
@@ -27,6 +29,7 @@
             localhostPort,
             hotReload,
             https,
+            watchJSON,
         };
         allTabs[thisTab] = tabDetails;
 
@@ -43,18 +46,10 @@
         localStorage.setItem(label, JSON.stringify(object));
     },
 
-    // removeLocalStorage = () => {
-    //     localStorage.removeItem('injectionDelay');
-    //     localStorage.removeItem('fileSource');
-    //     localStorage.removeItem('hotReload');
-    //     localStorage.removeItem('localhostPort');
-    //     localStorage.removeItem('https');
-    // },
-
     setTabPropertyToStorage = (property,value) => {
         let allTabs = localStorage.getItem('allTabs');
         let thisTab = localStorage.getItem('thisTab');
-
+        console.log(property,value);
         if(allTabs && allTabs !== '' && thisTab !== ''){
             allTabs = JSON.parse(allTabs);
             
@@ -69,6 +64,6 @@
         let thisTab = localStorage.getItem('thisTab');
         if(typeof allTabs === 'object' && allTabs[thisTab]){
             const tabDetails = allTabs[thisTab];
-            return { thisTab, injectionDelay, fileSource, localhostPort, hotReload, https } = tabDetails;
+            return { thisTab, injectionDelay, fileSource, localhostPort, hotReload, https, watchJSON } = tabDetails;
         } else return {};
     };
