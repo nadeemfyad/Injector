@@ -8,6 +8,8 @@
 
     <link rel="stylesheet" href="/css/popup.css">
     <link rel="stylesheet" href="/css/toggle.css">
+    <link rel="stylesheet" href="/css/checkbox.css">
+    <link rel="stylesheet" href="/css/inputText.css">
     <script type='text/javascript' src='/javascript/helpers/utils.js'></script>
     <script type='text/javascript' src='/javascript/helpers/localStorage.js'></script>
     <script type='text/javascript' src='/javascript/helpers/sendRequests.js'></script>
@@ -22,49 +24,64 @@
                     <div id='injectorBadge'></div>
                     <div id='injectorText'></div>
                 </div>
-                <div id='httpsWrap'>
-                    <span>https: </span>
-                    <input id='https' class='checkbox' type="checkbox" name="https"  />
+
+                <div id='httpsWrap' class 'input'>
+                    <label class="container">HTTPS
+                        <input id='https' class='checkbox' type="checkbox" name="https" />
+                        <span class="checkmark"></span>
+                    </label>
                 </div>
                 <div id='connectionTable'>
-                    <span>fss port: </span>
-                    <input id='localhostPort' class='inputText' type="text" name="localhostPort" placeholder="2222" value='2222' size="5" />
+                    <label class='inputLabel inline'>fss port: </label>
+                    <div id='fssWrap' class="input">
+                        <span>fss port: </span>
+                        <input id='localhostPort' class='inputText' type="text" name="localhostPort" placeholder="2222" value='2222' size="6" />
+                    </div>
                     <div id='connectionBadge'></div>
                     <div id='connectionStatus'></div>
                 </div>
             </div>
             <div id='fileForm'>
-                <span>File location</span>
-
-                <br>
-                <input id='fileSource' class='inputText' type="text" name="fileSource" placeholder="file location..." size="20" />
+                <div class="input">
+                    <span></span>
+                    <input id='fileSource' class='inputText' type="text" name="fileSource" placeholder="file location..." size="20" />
+                </div>
                 <br>
                 <div id='config'>
-                    <div id='injectionDelayWrap'>
-                        <span>Injection delay</span>
-                        <br>
+                    <label class='inputLabel'>Delay: </label>
+                    <div id='injectionDelayWrap' class="input">
+                        <span></span>
                         <input id='injectionDelay' class='inputText' type="text" name="injectionDelay" placeholder="1000" value='1000' size="5" />
                     </div>
-                    <div id='hotReloadWrap'>
-                        <span>Hot Reload</span>
-                        <input id='hotReload' class='checkbox' type="checkbox" name="hotReload" />
+                    <label class='inputLabel'>ms</label>
+                    <div id='hotReloadWrap' class 'input'>
+                        <label class="container">Hot Reload
+                            <input id='hotReload' class='checkbox' type="checkbox" name="hotReload" />
+                            <span class="checkmark"></span>
+                        </label>
+                        <!-- <span>Hot Reload</span>
+                        <input id='hotReload' class='checkbox' type="checkbox" name="hotReload" /> -->
                     </div>
                     <div id='watchJSONWrap'>
-                            <span>Watch JSON</span>
+                        <label class="container">Watch JSON
                             <input id='watchJSON' class='checkbox' type="checkbox" name="watchJSON" />
-                        </div>
+                            <span class="checkmark"></span>
+                        </label>
+                        <!-- <span>Watch JSON</span>
+                            <input id='watchJSON' class='checkbox' type="checkbox" name="watchJSON" /> -->
+                    </div>
                 </div>
                 <div id='buttonFooter'>
                     <div id='message'></div>
                     <div id='error'>$nbsp;</div>
                     <div id='buttonWrapper'>
-                            <div class="onoffswitch">
-                                    <input type="checkbox" name="https" class="onoffswitch-checkbox" id="injectFile">
-                                    <label class="onoffswitch-label" for="injectFile">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                            </div>
+                        <div class="onoffswitch">
+                            <input type="checkbox" name="https" class="onoffswitch-checkbox" id="injectFile">
+                            <label class="onoffswitch-label" for="injectFile">
+                                <span class="onoffswitch-inner"></span>
+                                <span class="onoffswitch-switch"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

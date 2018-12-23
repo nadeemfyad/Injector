@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (watchJSON !== null) setDOMElementProperty('watchJSON', 'checked', watchJSON);
 
+    setLocalStorage();
 
     document.querySelectorAll('input').forEach(element => element.addEventListener('blur', () => {
         setLocalStorage();
@@ -87,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('injectFile').addEventListener('change', (e) => {
         const injectFile = e.target.checked;
-        console.log(injectFile);
+        console.log('injectFile: ',injectFile);
         switch (injectFile) {
             case true:
                 injectFileON();
@@ -120,7 +121,7 @@ const handleResponse = (res) => {
     const fssConnected = localStorage.getItem('fss-connected');
     switch (isInjectorActive) {
         case 'true':
-            setDOMElementProperty('injectorBadge', 'backgroundColor', '#4F9FA7');
+            setDOMElementProperty('injectorBadge', 'backgroundColor', '#1beabd');
             setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
             if (fssConnected) setDOMElementProperty('injectFile', 'checked', true);
             else setDOMElementProperty('injectFile', 'checked', false);
@@ -129,7 +130,7 @@ const handleResponse = (res) => {
             break;
         case 'false':
         default:
-            setDOMElementProperty('injectorBadge', 'backgroundColor', '#ff2f23');
+            setDOMElementProperty('injectorBadge', 'backgroundColor', '#FF4600');
             setDOMElementProperty('injectorText', 'innerText', 'INJECTION INACTIVE');
             setDOMElementProperty('injectFile', 'checked', false);
             setDOMElementProperty('error', 'innerText', 'injection inactive');

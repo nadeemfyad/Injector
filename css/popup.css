@@ -1,20 +1,22 @@
 
 html{
     margin: 0;
-    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    height: fit-content;
     padding:0;
   }
 body{
-    /* background-color: #4f9fa7; */
-    /* margin:0px !important; */
-    border-radius: 5px
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    color: #4b4b4b;
+    border-radius: 5px;
 }
 #header {
     display: flex;
 }
 
 #httpsWrap{
-    margin-left: 35px;
+    margin-left: 20px;
+    margin-top: 4px;
 }
 
 #formWrapper{
@@ -30,14 +32,6 @@ body{
     margin-top: 20px;
 }
 
-#fileSource{
-    display: grid;
-    height: 23px;
-    font-size: 13px;
-    margin-top: 8px;
-    width: 490px;
-}
-
 #buttonWrapper,#message,#error{
     text-align: -webkit-center;
     display: flex;
@@ -46,7 +40,7 @@ body{
 }
 
 #error{
-    color: red;
+    color: #FF4600;
     font-weight: 600;
     margin-bottom: 8px;
     height: 15px !important;
@@ -64,9 +58,6 @@ body{
     border-radius: 5px;
 }
 
-#injectorStatus{
-    display: flex;
-}
 #injectorBadge{
     margin-top: 0px !important;
 }
@@ -75,23 +66,35 @@ body{
     margin-top: 1px !important;
 }
 
-#injectionDelay,#localhostPort{
+#fileSource{
+    display: grid;
+    height: 23px;
+    font-size: 13px;
+    width: 490px;
+}
+
+/* #injectionDelay,#localhostPort{
     font-size: 11px;
     width: 40px;
     height: 20px;
+} */
+
+#injectionDelayWrap{
+    display: flex;
 }
 
-#injectionDelay{
-    margin-top: 8px;
-}
-
-#localhostPort{
+#fssWrap{
     margin-left: 5px;
     margin-right: 15px;
 }
 
+#localhostPort{
+
+    height: 25px;
+}
+
 #connectionTable{
-    display: flex;
+    display: -webkit-box;
     position: absolute;
     top: 5px;
     right: 10px;
@@ -106,26 +109,36 @@ body{
     height: 15px;
     display: block;
     border-radius: 100%;
-    border: solid 1px #505050;
+    border: solid 1px #909090;
     margin-right: 4px;
-    margin-top: 5px;
+    margin-top: 7px;
 }
 
 #connectionStatus{
-    margin-top: 5px;
+    margin-top: 7px;
     cursor: pointer;
 }
 
+
+#injectorStatus{
+    display: flex;
+    margin-top: 5px;
+}
+/* 
 .inputText{
     outline: inset 1px #545454;
-}
+} */
 
 #config{
     display: flex;
+    margin-top: 27px;
 }
 
 #hotReloadWrap,#watchJSONWrap{
-    margin-top: 27px;
     margin-left: 20px;
     margin-right: 20px;
+} 
+
+.inputLabel{
+    align-self: center;
 }
