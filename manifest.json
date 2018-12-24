@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
-    "name": "Hot Injector",
+    "name": "Injector",
     "short_name":"*_TI_*",
-    "description": "Sources files and injects them authomatically. For local files install npm package 'filesystem-server' ",
+    "description": "Inject javascript on each page load + hot reload. For local files install npm package 'filesystem-server' ",
     "version": "0.0.01",
     "icons": {
         "16": "icons/icon16.png",

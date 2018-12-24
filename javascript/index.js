@@ -41,7 +41,7 @@ const handleFileInjection = (args) => {
         injectionDelay,
         // hotReload,
     } = args;
-    console.log(args);
+    // console.log(args);
     setLocalStorage(fileSource, injectionDelay);
     injectTag();
 };
@@ -56,7 +56,7 @@ const injectTag = () => {
 
     if (isInjectorActive && doesExists(fileStorage)) {
 
-        console.log(fileStorage);
+        console.log(`Injector :: injecting ${fileStorage} ...`);
         setTimeout(() => {
 
             const script = document.createElement('script');

@@ -238,8 +238,10 @@ const actionForm = (action) => {
     inputs.forEach(input => {
         input.disabled = disabled;
         input.style.backgroundColor = backgroundColor;
+        input.style.transition = "all .5s";
         if (input.type === 'checkbox' && !input.checked) {
             input.parentElement.parentElement.style.opacity = opacity;
+            input.parentElement.parentElement.style.transition = "all .3s";
         }
     });
 };

@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     const { action } = req;
     if (action === 'reload') {
         const { localhostPort, https, thisTab, fileSource, hotReload, watchJSON } = req;
-        console.log(req);
+        // console.log(req);
         toggleHotReload({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON });
     } else if (action === 'error'){
         console.log(error);
