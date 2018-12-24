@@ -45,3 +45,30 @@ const testConnection = async () => {
         return false;
     }
 };
+
+
+const testFileFetch = async (fileSource) => {
+    const fileSourceTest = fileSource.replace('/files/','/exists/');
+
+    const res = await fetch(fileSourceTest);
+    if (res.ok) {
+        const json = await res.json();
+        console.log(json.fileExists);
+        if (json.fileExists === 'true') {
+            setDOMElementProperty('injectFile', 'checked', true);
+            setDOMElementProperty('error', 'innerText', '');
+            return true;
+        } else {
+            setDOMElementProperty('injectFile', 'checked', false);
+            setDOMElementProperty('error', 'innerText', 'file not found');
+            return false;
+        }
+    } else {
+        setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
+        setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
+        localStorage.setItem('fss-connected', false);
+        setDOMElementProperty('injectFile', 'checked', false);
+        setDOMElementProperty('error', 'innerText', 'fss not connected');
+        return false
+    }
+};

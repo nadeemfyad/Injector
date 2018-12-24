@@ -130,8 +130,14 @@ body{
 } */
 
 #config{
-    display: flex;
     margin-top: 27px;
+    border: solid #909090 1px;
+    border-radius: 10px;
+    padding-top: 15px;
+    padding-bottom: 5px;
+    display: flex;
+    box-shadow: 2px 3px 15px 0px #dddd;
+    justify-content: space-evenly;
 }
 
 #hotReloadWrap,#watchJSONWrap{
@@ -144,7 +150,9 @@ body{
 }
 
 #delayOuterWrap{
-    display:flex;
+    display: flex;
     position: relative;
     top: -5px;
+    margin-left: 20px;
+    margin-right: 20px;
 }

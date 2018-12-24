@@ -23,9 +23,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         watchJSON,
     } = getLocalStorage();
 
-    console.log(watchJSON);
+    // console.log(watchJSON);
 
-    console.log(thisTab, injectionDelay, fileSource, localhostPort, hotReload, https, watchJSON);
+    // console.log(thisTab, injectionDelay, fileSource, localhostPort, hotReload, https, watchJSON);
 
     if (fileSource) setDOMElementProperty('fileSource', 'value', fileSource);
 
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const fssConnected = localStorage.getItem('fss-connected');
         const { thisTab, fileSource, localhostPort, https } = getLocalStorage();
         setTabPropertyToStorage('watchJSON', watchJSON);
-        console.log(fssConnected);
+        // console.log(fssConnected);
         if (fssConnected === 'false') setDOMElementProperty('injectFile', 'checked', false);
         initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
     });
@@ -125,16 +125,16 @@ const handleResponse = (res) => {
             setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
             if (fssConnected) setDOMElementProperty('injectFile', 'checked', true);
             else setDOMElementProperty('injectFile', 'checked', false);
-            chrome.browserAction.setBadgeBackgroundColor({ color: [0, 208, 0, 100] });
+            chrome.browserAction.setBadgeBackgroundColor({ color: [	68, 189, 169, 100] });
             chrome.browserAction.setBadgeText({ text: "ON" });
             break;
         case 'false':
         default:
             setDOMElementProperty('injectorBadge', 'backgroundColor', '#FF4600');
-            setDOMElementProperty('injectorText', 'innerText', 'INJECTION INACTIVE');
+            setDOMElementProperty('injectorText', 'innerText', 'INACTIVE');
             setDOMElementProperty('injectFile', 'checked', false);
-            setDOMElementProperty('error', 'innerText', 'injection inactive');
-            chrome.browserAction.setBadgeBackgroundColor({ color: [255, 47, 35, 100] });
+            setDOMElementProperty('error', 'innerText', '');
+            chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
             chrome.browserAction.setBadgeText({ text: "OFF" });
             break;
     }
@@ -164,7 +164,7 @@ const getTabId = async () => {
     });
     const thisTab = await getTabId.then(tabId => tabId);
     localStorage.setItem('thisTab', thisTab);
-    console.log(`this tab id: ${thisTab}`);
+    // console.log(`this tab id: ${thisTab}`);
     return thisTab;
 };
 
@@ -176,7 +176,7 @@ const initializeHotReload = (fileSource, localhostPort, https, thisTab, hotReloa
 };
 
 
-const injectFileON = () => {
+const injectFileON = async () => {
     const isConnectionActive = testConnection();
     if(isConnectionActive){
         setLocalStorage();
@@ -191,27 +191,45 @@ const injectFileON = () => {
         } = getLocalStorage();
     
         let { fileSource } = getLocalStorage();
-    
-        initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
-    
-        if (isUrl(fileSource)) {
-            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
-    
-        } else if (!isUrl(fileSource) && testConnection()) {
+        
+        const isUrl = checkIsUrl(fileSource);
+
+        if (!isUrl) {
             const uriEncodedFileSource = encodeURIComponent(fileSource);
             const protocol = https ? 'https' : 'http';
-    
             fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+        }
+
+        if (isUrl || (!isUrl && testConnection())) {
+            if(await testFileFetch(fileSource)){
+                initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
+                sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
+            }
     
-            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
-    
-        } else {
+        }
+        // else if (!isUrl(fileSource) && testConnection()) {
+        //     // const uriEncodedFileSource = encodeURIComponent(fileSource);
+        //     // const protocol = https ? 'https' : 'http';
+        //     // fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+
+        //     if(await testFileFetch(fileSource)){
+        //         initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
+        //         sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
+        //     }
+        // }
+        else {
             setDOMElementProperty('message', 'innerText', '*npm filesystem-server to access filesystem');
         }
+
     } else {
 
         setDOMElementProperty('injectFile', 'checked', false);
         setDOMElementProperty('error', 'innerText', 'filesystem-server not connected');
     }
    
+};
+
+const checkIsUrl = (string) => {
+    const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
+    return urlPattern.test(string);
 };
