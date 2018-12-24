@@ -71,30 +71,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('hotReload').addEventListener('change', (e) => {
         const hotReload = e.target.checked;
-        const { thisTab, fileSource, localhostPort, https, watchJSON } = getLocalStorage();
+        const { watchJSON } = getLocalStorage();
+        // const { thisTab, fileSource, localhostPort, https, watchJSON } = getLocalStorage();
+        if (watchJSON && !hotReload) setDOMElementProperty('watchJSON', 'checked', false);
         setTabPropertyToStorage('hotReload', hotReload);
-        initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
+
     });
 
     document.getElementById('watchJSON').addEventListener('change', (e) => {
         const watchJSON = e.target.checked;
         const fssConnected = localStorage.getItem('fss-connected');
-        const { thisTab, fileSource, localhostPort, https } = getLocalStorage();
+        const { hotReload } = getLocalStorage();
         setTabPropertyToStorage('watchJSON', watchJSON);
-        // console.log(fssConnected);
+        if (watchJSON && !hotReload) setDOMElementProperty('hotReload', 'checked', true);
         if (fssConnected === 'false') setDOMElementProperty('injectFile', 'checked', false);
-        initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
+
     });
 
     document.getElementById('injectFile').addEventListener('change', (e) => {
         const injectFile = e.target.checked;
-        console.log('injectFile: ',injectFile);
+        console.log('injectFile: ', injectFile);
         switch (injectFile) {
             case true:
                 injectFileON();
                 break;
             case false:
             default:
+                actionForm('enable');
                 sendMessageToContent({ action: 'stopInjection' });
                 break;
         }
@@ -125,8 +128,9 @@ const handleResponse = (res) => {
             setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
             if (fssConnected) setDOMElementProperty('injectFile', 'checked', true);
             else setDOMElementProperty('injectFile', 'checked', false);
-            chrome.browserAction.setBadgeBackgroundColor({ color: [	68, 189, 169, 100] });
+            chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
             chrome.browserAction.setBadgeText({ text: "ON" });
+            actionForm('disable');
             break;
         case 'false':
         default:
@@ -136,11 +140,11 @@ const handleResponse = (res) => {
             setDOMElementProperty('error', 'innerText', '');
             chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
             chrome.browserAction.setBadgeText({ text: "OFF" });
+            actionForm('enable');
             break;
     }
 
 };
-
 
 const setDOMElementProperty = (nodeId, property, value) => {
     if (property === 'backgroundColor') {
@@ -148,13 +152,6 @@ const setDOMElementProperty = (nodeId, property, value) => {
     } else document.getElementById(nodeId)[property] = value;
     return;
 };
-
-const isUrl = (string) => {
-    const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
-    // console.log(urlPattern.test(string));
-    return urlPattern.test(string);
-};
-
 
 const getTabId = async () => {
     const getTabId = new Promise((resolve, reject) => {
@@ -178,7 +175,7 @@ const initializeHotReload = (fileSource, localhostPort, https, thisTab, hotReloa
 
 const injectFileON = async () => {
     const isConnectionActive = testConnection();
-    if(isConnectionActive){
+    if (isConnectionActive) {
         setLocalStorage();
 
         const {
@@ -189,9 +186,9 @@ const injectFileON = async () => {
             hotReload,
             watchJSON,
         } = getLocalStorage();
-    
+
         let { fileSource } = getLocalStorage();
-        
+        const filePath = '' + fileSource;
         const isUrl = checkIsUrl(fileSource);
 
         if (!isUrl) {
@@ -200,36 +197,49 @@ const injectFileON = async () => {
             fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
         }
 
-        if (isUrl || (!isUrl && testConnection())) {
-            if(await testFileFetch(fileSource)){
-                initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
-                sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
-            }
-    
-        }
-        // else if (!isUrl(fileSource) && testConnection()) {
-        //     // const uriEncodedFileSource = encodeURIComponent(fileSource);
-        //     // const protocol = https ? 'https' : 'http';
-        //     // fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+        if (isUrl || (!isUrl && testConnection() && await testFileFetch(fileSource))) {
 
-        //     if(await testFileFetch(fileSource)){
-        //         initializeHotReload(fileSource, localhostPort, https, thisTab, hotReload, watchJSON);
-        //         sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
-        //     }
-        // }
-        else {
-            setDOMElementProperty('message', 'innerText', '*npm filesystem-server to access filesystem');
+            initializeHotReload(filePath, localhostPort, https, thisTab, hotReload, watchJSON);
+
+            actionForm('disable');
+            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
         }
 
     } else {
-
         setDOMElementProperty('injectFile', 'checked', false);
         setDOMElementProperty('error', 'innerText', 'filesystem-server not connected');
     }
-   
+
 };
 
 const checkIsUrl = (string) => {
     const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
     return urlPattern.test(string);
+};
+
+
+const actionForm = (action) => {
+    let disabled, backgroundColor;
+    switch (action) {
+        case 'disable':
+            disabled = true;
+            backgroundColor = 'rgba(0,0,0,0)';
+            opacity = 0;
+            break;
+        case 'enable':
+        default:
+            disable = false;
+            backgroundColor = 'white';
+            opacity = 10;
+            break;
+    }
+
+    const inputs = document.querySelectorAll('input:not(#injectFile)');
+    inputs.forEach(input => {
+        input.disabled = disabled;
+        input.style.backgroundColor = backgroundColor;
+        if (input.type === 'checkbox' && !input.checked) {
+            input.parentElement.parentElement.style.opacity = opacity;
+        }
+    });
 };
