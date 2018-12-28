@@ -91,14 +91,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('injectFile').addEventListener('change', (e) => {
         const injectFile = e.target.checked;
         console.log('injectFile: ', injectFile);
+
         switch (injectFile) {
             case true:
-                injectFileON();
+                toggleInjectFile({formState: 'disable', messageAction: 'setFileSource'});
                 break;
             case false:
             default:
-                actionForm('enable');
-                sendMessageToContent({ action: 'stopInjection' });
+                toggleInjectFile({formState: 'enable', messageAction: 'stopInjection'});
                 break;
         }
     });
@@ -119,23 +119,31 @@ const sendMessageToContent = (args) => {
     });
 };
 
-const handleResponse = (res) => {
+const handleResponse = async (res) => {
     const isInjectorActive = res && res.isInjectorActive ? res.isInjectorActive : 'false';
-    const fssConnected = localStorage.getItem('fss-connected');
+    // const fssConnected = localStorage.getItem('fss-connected');
+    const fssConnected = await testConnection();
+    const areWatchersConsistent = await testWatchers();
+    // console.log(areWatchersConsistent);
     switch (isInjectorActive) {
         case 'true':
             setDOMElementProperty('injectorBadge', 'backgroundColor', '#1beabd');
             setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
-            if (fssConnected) setDOMElementProperty('injectFile', 'checked', true);
-            else setDOMElementProperty('injectFile', 'checked', false);
-            chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
-            chrome.browserAction.setBadgeText({ text: "ON" });
-            actionForm('disable');
+
+            if (fssConnected && areWatchersConsistent) {
+                setDOMElementProperty('injectFile', 'checked', true)
+                chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
+                chrome.browserAction.setBadgeText({ text: "ON" });
+                actionForm('disable');
+            }
+            // else setDOMElementProperty('injectFile', 'checked', false);
+         
             break;
         case 'false':
         default:
             setDOMElementProperty('injectorBadge', 'backgroundColor', '#FF4600');
             setDOMElementProperty('injectorText', 'innerText', 'INACTIVE');
+
             setDOMElementProperty('injectFile', 'checked', false);
             setDOMElementProperty('error', 'innerText', '');
             chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
@@ -172,8 +180,13 @@ const initializeHotReload = (fileSource, localhostPort, https, thisTab, hotReloa
     return;
 };
 
-
-const injectFileON = async () => {
+const toggleInjectFile = async (args) => {
+    const {
+        formState,
+        messageAction
+    } = args;
+    console.log(formState);
+    console.log(messageAction);
     const isConnectionActive = testConnection();
     if (isConnectionActive) {
         setLocalStorage();
@@ -183,11 +196,12 @@ const injectFileON = async () => {
             localhostPort,
             https,
             thisTab,
-            hotReload,
             watchJSON,
         } = getLocalStorage();
 
-        let { fileSource } = getLocalStorage();
+        let { fileSource, hotReload, } = getLocalStorage();
+
+
         const filePath = '' + fileSource;
         const isUrl = checkIsUrl(fileSource);
 
@@ -197,12 +211,14 @@ const injectFileON = async () => {
             fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
         }
 
-        if (isUrl || (!isUrl && testConnection() && await testFileFetch(fileSource))) {
+        if (isUrl || (!isUrl /*&& testConnection()*/ && await testFileFetch(fileSource))) {
 
-            initializeHotReload(filePath, localhostPort, https, thisTab, hotReload, watchJSON);
+            hotReload = messageAction === 'stopInjection' ? false : hotReload;
 
-            actionForm('disable');
-            sendMessageToContent({ action: 'setFileSource', fileSource, injectionDelay, hotReload, watchJSON });
+            if(!isUrl) initializeHotReload(filePath, localhostPort, https, thisTab, hotReload, watchJSON);
+
+            actionForm(formState);
+            sendMessageToContent({ action: messageAction, fileSource, injectionDelay, hotReload, watchJSON });
         }
 
     } else {
@@ -211,6 +227,7 @@ const injectFileON = async () => {
     }
 
 };
+
 
 const checkIsUrl = (string) => {
     const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
@@ -225,12 +242,14 @@ const actionForm = (action) => {
             disabled = true;
             backgroundColor = 'rgba(0,0,0,0)';
             opacity = 0;
+            textColor = '#ffffff';
             break;
         case 'enable':
         default:
             disable = false;
             backgroundColor = 'white';
             opacity = 10;
+            textColor = '#555555';
             break;
     }
 
@@ -239,9 +258,15 @@ const actionForm = (action) => {
         input.disabled = disabled;
         input.style.backgroundColor = backgroundColor;
         input.style.transition = "all .5s";
-        if (input.type === 'checkbox' && !input.checked) {
-            input.parentElement.parentElement.style.opacity = opacity;
-            input.parentElement.parentElement.style.transition = "all .3s";
+        if (input.type === 'checkbox') {
+            if(!input.checked){
+                input.parentElement.parentElement.style.opacity = opacity;
+                input.parentElement.parentElement.style.transition = "all .3s"; 
+            } else {
+                input.parentElement.color = textColor;
+                console.log(input.parentElement);
+            }
+
         }
     });
 };

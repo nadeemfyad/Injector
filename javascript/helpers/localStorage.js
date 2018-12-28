@@ -59,6 +59,12 @@
         } else return;
     },
 
+    clearLocalStorage = () => {
+        localStorage.removeItem('allTabs');
+        localStorage.removeItem('fss-connected');
+        localStorage.removeItem('thisTab');
+    },
+
     getLocalStorage = () => {
         const allTabs = getObjectFromStorage('allTabs');
         let thisTab = localStorage.getItem('thisTab');

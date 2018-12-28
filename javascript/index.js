@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', function () {
             case 'reloadTab':
                 reloadTab();
                 break;
+            case 'clearLocalStorage':
+                clearLocalStorage();
+                break;
             case 'requestStatus':
             default:
                 console.log('requestStatus');
@@ -95,6 +98,12 @@ const getLocalStorage = () => {
 
 const doesExists = (arg) => {
     return arg && arg !== undefined && arg !== '';
+};
+
+const clearLocalStorage = () => {
+    localStorage.removeItem('injectorDelay');
+    localStorage.removeItem('injectorFileSource');
+    localStorage.removeItem('isInjectorActive');
 };
 
 injectTag();

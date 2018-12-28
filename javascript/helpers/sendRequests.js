@@ -1,57 +1,100 @@
-const testConnection = async () => {
+
+
+const testWatchers = async () => {
     try {
         const {
             localhostPort,
             https,
+            hotReload,
+            watchJSON,
         } = getLocalStorage();
         if (localhostPort) {
             const protocol = https ? 'https' : 'http';
-            const url = `${protocol}://localhost:${localhostPort}/testFSSConnection`;
-            console.log(url);
-            const res = await fetch(url);
-            if (res.ok) {
-                const json = await res.json();
-                if (json.fssConnected === 'true') {
-                    setDOMElementProperty('connectionStatus', 'innerText', 'FSS CONNECTED');
-                    setDOMElementProperty('connectionBadge', 'backgroundColor', '#1beabd');
-                    localStorage.setItem('fss-connected', true);
-                    setDOMElementProperty('message', 'innerText', '');
-                    setDOMElementProperty('error', 'innerText', ' ');
-                    console.log('connected');
+            const urlWatchers = `${protocol}://localhost:${localhostPort}/testWatchers`;
+            const resWatchers = await fetch(urlWatchers,
+                {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    method: 'POST',
+                    body: JSON.stringify({ hotReload, watchJSON }),
+                });
+            if (resWatchers.ok) {
+                const jsonWatchers = await resWatchers.json();
+
+                if (jsonWatchers.fssWatchersConsistent === 'true') {
                     return true;
                 } else {
-                    setDOMElementProperty('connectionStatus', 'innerText', 'CLICK TO TRY AGAIN');
-                    setDOMElementProperty('connectionBadge', 'backgroundColor', 'orange');
-                    localStorage.setItem('fss-connected', false);
-                    console.log('uncertain');
                     return false;
                 }
+            }
+        } else { return false; }
+    } catch (err) {
+        console.log(err);
+        return false;
+    }
+};
+
+const testConnection = async () => {
+    // try {
+    const {
+        localhostPort,
+        https,
+    } = getLocalStorage();
+    if (localhostPort) {
+        const protocol = https ? 'https' : 'http';
+        const url = `${protocol}://localhost:${localhostPort}/testFSSConnection`;
+        const res = await fetch(url).catch(((err) => { console.log(err); }));
+        if (res && res.ok) {
+            const json = await res.json();
+            if (json.fssConnected === 'true') {
+                setDOMElementProperty('connectionStatus', 'innerText', 'FSS CONNECTED');
+                setDOMElementProperty('connectionBadge', 'backgroundColor', '#1beabd');
+                localStorage.setItem('fss-connected', true);
+                setDOMElementProperty('message', 'innerText', '');
+                setDOMElementProperty('error', 'innerText', ' ');
+                console.log('connected');
+                return true;
+            } else {
+                setDOMElementProperty('connectionStatus', 'innerText', 'CLICK TO TRY AGAIN');
+                setDOMElementProperty('connectionBadge', 'backgroundColor', 'orange');
+                localStorage.setItem('fss-connected', false);
+                console.log('uncertain');
+                return false;
             }
         } else {
             setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
             setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
             localStorage.setItem('fss-connected', false);
             setDOMElementProperty('injectFile', 'checked', false);
+            setDOMElementProperty('error', 'innerText', 'No Connection. Check url, parameters and that fss is running.');
         }
-    } catch (err) {
-        console.log(err);
+    } else {
         setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
         setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
         localStorage.setItem('fss-connected', false);
         setDOMElementProperty('injectFile', 'checked', false);
-        setDOMElementProperty('error', 'innerText', err);
-
-        console.log('not connected');
-        return false;
     }
+    // } catch (err) {
+    //     console.log(err);
+    //     setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
+    //     setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
+    //     localStorage.setItem('fss-connected', false);
+    //     setDOMElementProperty('injectFile', 'checked', false);
+    //     setDOMElementProperty('error', 'innerText', err);
+
+    //     console.log('not connected');
+    //     return false;
+    // }
 };
 
 
 const testFileFetch = async (fileSource) => {
-    const fileSourceTest = fileSource.replace('/files/','/exists/');
+    const fileSourceTest = fileSource.replace('/files/', '/exists/');
 
-    const res = await fetch(fileSourceTest);
-    if (res.ok) {
+    const res = await fetch(fileSourceTest).catch(((err) => { console.log(err); }));;
+    if (res && res.ok) {
         const json = await res.json();
         console.log(json.fileExists);
         if (json.fileExists === 'true') {
@@ -68,7 +111,7 @@ const testFileFetch = async (fileSource) => {
         setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
         localStorage.setItem('fss-connected', false);
         setDOMElementProperty('injectFile', 'checked', false);
-        setDOMElementProperty('error', 'innerText', 'fss not connected');
+        setDOMElementProperty('error', 'innerText', 'Cannot reach the file. Check url, parameters and that fss is running.');
         return false
     }
 };

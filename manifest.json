@@ -3,7 +3,7 @@
     "name": "Injector",
     "short_name":"*_TI_*",
     "description": "Inject javascript on each page load + hot reload. For local files install npm package 'filesystem-server' ",
-    "version": "0.0.01",
+    "version": "1.0.01",
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",

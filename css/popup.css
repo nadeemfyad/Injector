@@ -44,7 +44,8 @@ body{
 #error{
     color: #FF4600;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 3px;
+    margin-top: 7px;
     height: 15px !important;
 }
 

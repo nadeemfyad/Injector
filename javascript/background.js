@@ -1,3 +1,4 @@
+let connection;
 
 chrome.tabs.onRemoved.addListener(function (tabid, removed) {
     let allTabs = localStorage.getItem('allTabs');
@@ -18,63 +19,63 @@ chrome.tabs.onRemoved.addListener(function (tabid, removed) {
 
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     const { action } = req;
-    if (action === 'reload') {
-        const { localhostPort, https, thisTab, fileSource, hotReload, watchJSON } = req;
-        // console.log(req);
-        toggleHotReload({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON });
-    } else if (action === 'error'){
-        console.log(error);
+    switch (action) {
+        case 'reload':
+            const { localhostPort, https, thisTab, fileSource, hotReload, watchJSON } = req;
+            toggleHotReload({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON });
+            break;
+        case 'clearLocalStorage':
+            resetLocalStorage();
+            break;
+        case 'error':
+        default:
+            console.log(error);
+            break;
     }
-});
 
-const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON }) => {
-    const protocol = https ? 'https' : 'http';
-    const url = `${protocol}://localhost:${localhostPort}/hotReload/`;
-    const payLoad = {
-        fileSource,
-        hotReload,
-        thisTab,
-        localhostPort,
-        https,
-        watchJSON,
-    };
-    makeHotReloadRequest(url, payLoad);
-},
+    });
 
-    makeHotReloadRequest = async (url, payLoad) => {
-
-        const res = await fetch(url,
-            {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                method: 'POST',
-                body: JSON.stringify(payLoad),
-            });
-
-        if (res.ok) {
-            const json = await res.json();
-            // console.log(json);
-            const {
-                hotReload,
-                error,
-                thisTab,
-            } = json;
-            if (hotReload && !error) {
-                reloadTab(thisTab);
-                try {
-                    await makeHotReloadRequest(url, payLoad);
-                }catch(err){
-                    console.log(err);
-                }
-            
-            }
-        }
+    const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON }) => {
+        const protocol = https ? 'wss' : 'ws';
+        const url = `${protocol}://localhost:${localhostPort}/hotReload/`;
+        const payLoad = {
+            fileSource,
+            hotReload,
+            thisTab,
+            localhostPort,
+            https,
+            watchJSON,
+        };
+        makeHotReloadRequest(url, payLoad);
     },
 
-    reloadTab = (thisTab) => {
-        console.log(`reload Tab: ${thisTab}`);
-        // sendMessageToContent({ action: 'reloadTab' })
-        chrome.tabs.sendMessage(thisTab, { action: "reloadTab" }, function (response) { });
-    };
+        makeHotReloadRequest = async (url, payLoad) => {
+            if (connection) connection.close();
+            var connection = new WebSocket(url);
+            if (connection) {
+                connection.onopen = function () {
+                    connection.send(JSON.stringify(payLoad));
+                };
+
+                connection.onmessage = function (msg) {
+                    const json = JSON.parse(msg.data);
+                    const {
+                        hotReload,
+                        error,
+                        thisTab,
+                    } = json;
+                    if (hotReload && !error) { reloadTab(thisTab); }
+                };
+            }
+        },
+
+        reloadTab = (thisTab) => {
+            console.log(`reload Tab: ${thisTab}`);
+            chrome.tabs.sendMessage(thisTab, { action: "reloadTab" }, function (response) { });
+        },
+
+        resetLocalStorage = () => {
+            localStorage.removeItem('allTabs');
+            localStorage.removeItem('fss-connected');
+            localStorage.removeItem('thisTab');
+        };
