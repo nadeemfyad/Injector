@@ -119,25 +119,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 const testInjectorStatus = async () => {
-    sendMessageToContent({ action: 'requestStatus' });
+    await sendMessageToContent({ action: 'requestStatus' });
 };
 
-const sendMessageToContent = (args) => {
+const sendMessageToContent = async (args) => {
 
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabID = await getTabId();
+    await chrome.tabs.sendMessage(tabID, args, async res => await handleResponse(res));
 
-        console.log(`Current Tab Id: ${tabs[0].id}`);
-
-        chrome.tabs.sendMessage(tabs[0].id, args, res => handleResponse(res));
-    });
 };
 
 const handleResponse = async (res) => {
     const isInjectorActive = res && res.isInjectorActive ? res.isInjectorActive : 'false';
-    // const fssConnected = localStorage.getItem('fss-connected');
     const fssConnected = await testConnection();
     const areWatchersConsistent = await testWatchers();
-    // console.log(areWatchersConsistent);
+    
     switch (isInjectorActive) {
         case 'true':
             setDOMElementProperty('injectorBadge', 'backgroundColor', '#1beabd');
@@ -165,25 +161,6 @@ const handleResponse = async (res) => {
             break;
     }
 
-};
-
-const setDOMElementProperty = (nodeId, property, value) => {
-    if (property === 'backgroundColor') {
-        document.getElementById(nodeId).style.backgroundColor = value;
-    } else document.getElementById(nodeId)[property] = value;
-    return;
-};
-
-const getTabId = async () => {
-    const getTabId = new Promise((resolve, reject) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            resolve(tabs[0].id);
-        });
-    });
-    const thisTab = await getTabId.then(tabId => tabId);
-    localStorage.setItem('thisTab', thisTab);
-    // console.log(`this tab id: ${thisTab}`);
-    return thisTab;
 };
 
 const initializeHotReload = (fileSource, localhostPort, https, thisTab, hotReload, watchJSON) => {
@@ -228,7 +205,7 @@ const toggleInjectFile = async (args) => {
             if(!isUrl) initializeHotReload(filePath, localhostPort, https, thisTab, hotReload, watchJSON);
 
             actionForm(formState);
-            sendMessageToContent({ action: messageAction, fileSource, injectionDelay, hotReload, watchJSON });
+            await sendMessageToContent({ action: messageAction, fileSource, injectionDelay, hotReload, watchJSON });
         }
         chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
         chrome.browserAction.setBadgeText({ text: "ON" });
@@ -239,50 +216,5 @@ const toggleInjectFile = async (args) => {
         chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
         chrome.browserAction.setBadgeText({ text: "OFF" });
     }
-
-};
-
-
-const checkIsUrl = (string) => {
-    const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
-    return urlPattern.test(string);
-};
-
-
-const actionForm = (action) => {
-    let disabled, backgroundColor;
-    switch (action) {
-        case 'disable':
-            disabled = true;
-            backgroundColor = 'rgba(0,0,0,0)';
-            opacity = 0;
-            textColor = '#adadad';
-            break;
-        case 'enable':
-        default:
-            disable = false;
-            backgroundColor = 'white';
-            opacity = 10;
-            textColor = '#ffffff';
-            break;
-    }
-
-    const inputs = document.querySelectorAll('input:not(#injectFile)');
-    inputs.forEach(input => {
-        input.disabled = disabled;
-        input.style.backgroundColor = backgroundColor;
-        input.style.transition = "all .5s";
-        if (input.type === 'checkbox') {
-            if(!input.checked){
-                input.parentElement.parentElement.style.opacity = opacity;
-                input.parentElement.parentElement.style.transition = "all .3s"; 
-            } else {
-                input.parentElement.style.color = textColor;
-            }
-        }
-        document.querySelectorAll('.inputLabel').forEach(label => {
-            label.style.color = textColor;
-        });
-    });
 
 };

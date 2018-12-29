@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const { action } = msg;
         const {
             isInjectorActive,
+            injectorFileSource,
         } = getLocalStorage();
         // console.log(action);
         // console.log(isInjectorActive);
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
             case 'requestStatus':
             default:
                 console.log('requestStatus');
-                sendResponse({ isInjectorActive: isInjectorActive });
+                sendResponse({ isInjectorActive: isInjectorActive, fileSource: injectorFileSource });
                 break;
         }
     });

@@ -52,13 +52,27 @@ const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotR
 },
 
     makeHotReloadRequest = async (url, payLoad) => {
-        // if (connection) connection.close();
-        // console.log(url);
+
         connection = new WebSocket(url);
         connection.onerror = function (error) { console.log(error); };
         if (connection) {
+
             connection.onopen = function () {
                 connection.send(JSON.stringify(payLoad));
+            };
+
+            connection.onclose = (e) =>{
+                switch (e.code){
+                case 1000:	// Normal close
+                    console.log("WebSocket: closed");
+                    connection.close();
+                    break;
+                default:	// Abnormal close
+                    console.log("WebSocket closed unexpectedly. Trying to reconnect...");
+                    this.open(url);
+                    makeHotReloadRequest(url, payLoad);
+                    break;
+                }
             };
 
             connection.onmessage = function (msg) {
