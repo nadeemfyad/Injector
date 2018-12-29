@@ -69,8 +69,8 @@ const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotR
                     break;
                 default:	// Abnormal close
                     console.log("WebSocket closed unexpectedly. Trying to reconnect...");
-                    this.open(url);
-                    makeHotReloadRequest(url, payLoad);
+                    // this.open(url);
+                    // makeHotReloadRequest(url, payLoad); crazy recursive
                     break;
                 }
             };
