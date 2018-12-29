@@ -45,6 +45,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         setLocalStorage();
     }));
 
+
+    document.getElementById('binIcon').addEventListener('click', () => {
+        const {
+            localhostPort,
+            https,
+        } = getLocalStorage();
+
+        chrome.runtime.sendMessage({ action: 'clearData', localhostPort, https });
+        clearLocalStorage();
+        sendMessageToContent({ action: 'clearLocalStorage' });
+        setDOMElementProperty('fileSource', 'value', '');
+    });
+
     document.getElementById('connectionStatus').addEventListener('click', () => {
         testConnection();
     });
@@ -185,8 +198,6 @@ const toggleInjectFile = async (args) => {
         formState,
         messageAction
     } = args;
-    console.log(formState);
-    console.log(messageAction);
     const isConnectionActive = testConnection();
     if (isConnectionActive) {
         setLocalStorage();
@@ -200,7 +211,6 @@ const toggleInjectFile = async (args) => {
         } = getLocalStorage();
 
         let { fileSource, hotReload, } = getLocalStorage();
-
 
         const filePath = '' + fileSource;
         const isUrl = checkIsUrl(fileSource);
@@ -220,10 +230,14 @@ const toggleInjectFile = async (args) => {
             actionForm(formState);
             sendMessageToContent({ action: messageAction, fileSource, injectionDelay, hotReload, watchJSON });
         }
+        chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
+        chrome.browserAction.setBadgeText({ text: "ON" });
 
     } else {
         setDOMElementProperty('injectFile', 'checked', false);
         setDOMElementProperty('error', 'innerText', 'filesystem-server not connected');
+        chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
+        chrome.browserAction.setBadgeText({ text: "OFF" });
     }
 
 };
@@ -242,14 +256,14 @@ const actionForm = (action) => {
             disabled = true;
             backgroundColor = 'rgba(0,0,0,0)';
             opacity = 0;
-            textColor = '#ffffff';
+            textColor = '#adadad';
             break;
         case 'enable':
         default:
             disable = false;
             backgroundColor = 'white';
             opacity = 10;
-            textColor = '#555555';
+            textColor = '#ffffff';
             break;
     }
 
@@ -263,10 +277,12 @@ const actionForm = (action) => {
                 input.parentElement.parentElement.style.opacity = opacity;
                 input.parentElement.parentElement.style.transition = "all .3s"; 
             } else {
-                input.parentElement.color = textColor;
-                console.log(input.parentElement);
+                input.parentElement.style.color = textColor;
             }
-
         }
+        document.querySelectorAll('.inputLabel').forEach(label => {
+            label.style.color = textColor;
+        });
     });
+
 };

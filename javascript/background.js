@@ -24,58 +24,80 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
             const { localhostPort, https, thisTab, fileSource, hotReload, watchJSON } = req;
             toggleHotReload({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON });
             break;
-        case 'clearLocalStorage':
+        case 'clearData':
             resetLocalStorage();
+            clearWatchers(req);
             break;
         case 'error':
         default:
-            console.log(error);
+            console.log(action);
             break;
     }
 
-    });
+});
 
-    const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON }) => {
-        const protocol = https ? 'wss' : 'ws';
-        const url = `${protocol}://localhost:${localhostPort}/hotReload/`;
-        const payLoad = {
-            fileSource,
-            hotReload,
-            thisTab,
-            localhostPort,
-            https,
-            watchJSON,
-        };
-        makeHotReloadRequest(url, payLoad);
+const toggleHotReload = async ({ localhostPort, https, thisTab, fileSource, hotReload, watchJSON }) => {
+    const protocol = https ? 'wss' : 'ws';
+    const url = `${protocol}://localhost:${localhostPort}/hotReload/`;
+    const payLoad = {
+        action: 'hotReload',
+        fileSource,
+        hotReload,
+        thisTab,
+        localhostPort,
+        https,
+        watchJSON,
+    };
+    makeHotReloadRequest(url, payLoad);
+},
+
+    makeHotReloadRequest = async (url, payLoad) => {
+        // if (connection) connection.close();
+        // console.log(url);
+        connection = new WebSocket(url);
+        connection.onerror = function (error) { console.log(error); };
+        if (connection) {
+            connection.onopen = function () {
+                connection.send(JSON.stringify(payLoad));
+            };
+
+            connection.onmessage = function (msg) {
+                const json = JSON.parse(msg.data);
+                const {
+                    hotReload,
+                    error,
+                    thisTab,
+                } = json;
+                if (hotReload && !error) { reloadTab(thisTab); }
+            };
+        }
     },
 
-        makeHotReloadRequest = async (url, payLoad) => {
-            if (connection) connection.close();
-            var connection = new WebSocket(url);
-            if (connection) {
-                connection.onopen = function () {
-                    connection.send(JSON.stringify(payLoad));
-                };
-
-                connection.onmessage = function (msg) {
-                    const json = JSON.parse(msg.data);
-                    const {
-                        hotReload,
-                        error,
-                        thisTab,
-                    } = json;
-                    if (hotReload && !error) { reloadTab(thisTab); }
-                };
+    clearWatchers = async (args) => {
+        const {
+            localhostPort,
+            https,
+        } = args;
+        const protocol = https ? 'wss' : 'ws';
+        const url = `${protocol}://localhost:${localhostPort}/hotReload/`;
+        if (!connection) {
+            connection = new WebSocket(url);
+            connection.onopen = function () {
+                connection.send(JSON.stringify({ action: 'clearWatchers' }));
+                connection.close();
             }
-        },
-
-        reloadTab = (thisTab) => {
-            console.log(`reload Tab: ${thisTab}`);
-            chrome.tabs.sendMessage(thisTab, { action: "reloadTab" }, function (response) { });
-        },
-
-        resetLocalStorage = () => {
-            localStorage.removeItem('allTabs');
-            localStorage.removeItem('fss-connected');
-            localStorage.removeItem('thisTab');
+        } else {
+            connection.send(JSON.stringify({ action: 'clearWatchers' }));
         };
+    };
+
+reloadTab = (thisTab) => {
+    console.log(`reload Tab: ${thisTab}`);
+    chrome.tabs.sendMessage(thisTab, { action: "reloadTab" }, (response) => { });
+},
+
+    resetLocalStorage = () => {
+        localStorage.removeItem('allTabs');
+        localStorage.removeItem('fss-connected');
+        localStorage.removeItem('thisTab');
+    };

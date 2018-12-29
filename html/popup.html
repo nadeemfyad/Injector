@@ -10,10 +10,13 @@
     <link rel="stylesheet" href="/css/toggle.css">
     <link rel="stylesheet" href="/css/checkbox.css">
     <link rel="stylesheet" href="/css/inputText.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
+        crossorigin="anonymous">
     <script type='text/javascript' src='/javascript/helpers/utils.js'></script>
     <script type='text/javascript' src='/javascript/helpers/localStorage.js'></script>
     <script type='text/javascript' src='/javascript/helpers/sendRequests.js'></script>
     <script type='text/javascript' src='/javascript/popup.js'></script>
+
 </head>
 
 <body>
@@ -73,7 +76,13 @@
                     <div id='message'></div>
                     <div id='error'></div>
                     <div id='buttonWrapper'>
-                        <img id='recreateLogo' src ='/icons/recreate.jpg'></img>
+                        <img id='cloudiqLogo' src='/icons/cloudiq.jpg'></img>
+                        <!-- <img id='recreateLogo' src='/icons/recreate.jpg'></img> -->
+                        <div class='binIconWrap'>
+                            <span id='binIcon' tooltip='clear memory'>
+                                <i class="fas fa-trash-alt"></i>
+                            </span>
+                        </div>
                         <div class="onoffswitch">
                             <input type="checkbox" name="injectFile" class="onoffswitch-checkbox" id="injectFile">
                             <label class="onoffswitch-label" for="injectFile">
@@ -81,7 +90,7 @@
                                 <span class="onoffswitch-switch"></span>
                             </label>
                         </div>
-                        <img id='injectorLogo' src ='/icons/injector.jpg'></img>
+                        <img id='injectorLogo' src='/icons/injector.jpg'></img>
                     </div>
                 </div>
             </div>

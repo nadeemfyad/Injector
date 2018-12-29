@@ -176,3 +176,64 @@ body{
     left: 0px;
     bottom: 3px;
 }
+
+#cloudiqLogo{
+    width: 100px;
+    position: absolute;
+    left: 6px;
+    bottom: 8px;
+}
+
+.binIconWrap{
+    cursor: pointer;
+    position: relative;
+    height: inherit;
+    right: 30px;
+}
+#binIcon{
+    font-size: 1.5em;
+    color: #f3a13a;
+    position: absolute;
+    bottom: 0px;
+    left:0px;
+}
+
+#binIcon:hover{
+    color: #f36e3a;
+}
+
+#binIcon:active{
+    color: #ffcb8b;
+}
+
+[tooltip]:after{
+    content: attr(tooltip);
+    border: solid 1px #f36e3a;
+    border-radius: 4px;
+    font-size: 12px;
+    color: white;
+    padding: 4px;
+    position: absolute;
+    top: -32px;
+    left: -360%;
+    background-color: #333333;
+    white-space: nowrap;
+    opacity:0;
+}
+
+[tooltip]::before {
+    content: "";
+    position: absolute;
+    top:-7px;
+    left:50%;
+    transform: translateX(-50%);
+    border-width: 4px 6px 0 6px;
+    border-style: solid;
+    border-color: #f36e3a transparent transparent transparent;
+    z-index: 100;
+    opacity:0;
+}
+
+[tooltip]:hover::after,[tooltip]:hover::before {
+    opacity:1
+ }

@@ -37,7 +37,6 @@ const testWatchers = async () => {
 };
 
 const testConnection = async () => {
-    // try {
     const {
         localhostPort,
         https,
@@ -68,7 +67,7 @@ const testConnection = async () => {
             setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
             localStorage.setItem('fss-connected', false);
             setDOMElementProperty('injectFile', 'checked', false);
-            setDOMElementProperty('error', 'innerText', 'No Connection. Check url, parameters and that fss is running.');
+            setDOMElementProperty('error', 'innerText', 'No Connection. Check url, port and that fss is running.');
         }
     } else {
         setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
@@ -76,17 +75,6 @@ const testConnection = async () => {
         localStorage.setItem('fss-connected', false);
         setDOMElementProperty('injectFile', 'checked', false);
     }
-    // } catch (err) {
-    //     console.log(err);
-    //     setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
-    //     setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
-    //     localStorage.setItem('fss-connected', false);
-    //     setDOMElementProperty('injectFile', 'checked', false);
-    //     setDOMElementProperty('error', 'innerText', err);
-
-    //     console.log('not connected');
-    //     return false;
-    // }
 };
 
 
@@ -96,7 +84,7 @@ const testFileFetch = async (fileSource) => {
     const res = await fetch(fileSourceTest).catch(((err) => { console.log(err); }));;
     if (res && res.ok) {
         const json = await res.json();
-        console.log(json.fileExists);
+
         if (json.fileExists === 'true') {
             setDOMElementProperty('injectFile', 'checked', true);
             setDOMElementProperty('error', 'innerText', '');
@@ -111,7 +99,7 @@ const testFileFetch = async (fileSource) => {
         setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
         localStorage.setItem('fss-connected', false);
         setDOMElementProperty('injectFile', 'checked', false);
-        setDOMElementProperty('error', 'innerText', 'Cannot reach the file. Check url, parameters and that fss is running.');
+        setDOMElementProperty('error', 'innerText', 'Cannot reach the file. Check url, port and that fss is running.');
         return false
     }
 };
