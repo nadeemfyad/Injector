@@ -11,50 +11,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await testConnection();
 
-    await testInjectorStatus();
 
-    const {
-        thisTab,
-        injectionDelay,
-        fileSource,
-        localhostPort,
-        hotReload,
-        https,
-        watchJSON,
-    } = getLocalStorage();
-
-    // console.log(watchJSON);
-
-    // console.log(thisTab, injectionDelay, fileSource, localhostPort, hotReload, https, watchJSON);
-
-    if (fileSource) setDOMElementProperty('fileSource', 'value', fileSource);
-
-    if (injectionDelay) setDOMElementProperty('injectionDelay', 'value', injectionDelay);
-
-    if (localhostPort) setDOMElementProperty('localhostPort', 'value', localhostPort);
-
-    if (hotReload !== null) setDOMElementProperty('hotReload', 'checked', hotReload);
-
-    if (https !== null) setDOMElementProperty('https', 'checked', https);
-
-    if (watchJSON !== null) setDOMElementProperty('watchJSON', 'checked', watchJSON);
+    setFormValuesFromStorage();
 
     setLocalStorage();
+
+    let params = await initializeContentMessageAction({ action: 'requestStatus' });
+
+    handleParamsForGraphic(params);
+
+    setupFormAction(params);
+
 
     document.querySelectorAll('input').forEach(element => element.addEventListener('blur', () => {
         setLocalStorage();
     }));
 
 
-    document.getElementById('binIcon').addEventListener('click', () => {
+    document.getElementById('binIcon').addEventListener('click', async () => {
         const {
             localhostPort,
             https,
         } = getLocalStorage();
 
-        chrome.runtime.sendMessage({ action: 'clearData', localhostPort, https });
+        sendMessageToBackground({ action: 'clearData', localhostPort, https });
+
         clearLocalStorage();
-        sendMessageToContent({ action: 'clearLocalStorage' });
+
+        const params = await initializeContentMessageAction({ action: 'clearLocalStorage' });
+
+        handleParamsForGraphic(params);
+
         setDOMElementProperty('fileSource', 'value', '');
     });
 
@@ -107,75 +94,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         switch (injectFile) {
             case true:
-                toggleInjectFile({formState: 'disable', messageAction: 'setFileSource'});
+                toggleInjectFile({ formState: 'disable', messageAction: 'setFileSource' });
                 break;
             case false:
             default:
-                toggleInjectFile({formState: 'enable', messageAction: 'stopInjection'});
+                toggleInjectFile({ formState: 'enable', messageAction: 'stopInjection' });
                 break;
         }
+
     });
 
 });
 
-const testInjectorStatus = async () => {
-    await sendMessageToContent({ action: 'requestStatus' });
-};
-
-const sendMessageToContent = async (args) => {
-
-    const tabID = await getTabId();
-    await chrome.tabs.sendMessage(tabID, args, async res => await handleResponse(res));
-
-};
-
-const handleResponse = async (res) => {
-    const isInjectorActive = res && res.isInjectorActive ? res.isInjectorActive : 'false';
-    const fssConnected = await testConnection();
-    const areWatchersConsistent = await testWatchers();
-    
-    switch (isInjectorActive) {
-        case 'true':
-            setDOMElementProperty('injectorBadge', 'backgroundColor', '#1beabd');
-            setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
-
-            if (fssConnected && areWatchersConsistent) {
-                setDOMElementProperty('injectFile', 'checked', true)
-                chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
-                chrome.browserAction.setBadgeText({ text: "ON" });
-                actionForm('disable');
-            }
-            // else setDOMElementProperty('injectFile', 'checked', false);
-         
-            break;
-        case 'false':
-        default:
-            setDOMElementProperty('injectorBadge', 'backgroundColor', '#FF4600');
-            setDOMElementProperty('injectorText', 'innerText', 'INACTIVE');
-
-            setDOMElementProperty('injectFile', 'checked', false);
-            setDOMElementProperty('error', 'innerText', '');
-            chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
-            chrome.browserAction.setBadgeText({ text: "OFF" });
-            actionForm('enable');
-            break;
-    }
-
-};
-
-const initializeHotReload = (fileSource, localhostPort, https, thisTab, hotReload, watchJSON) => {
-    if (fileSource && fileSource !== '' && fileSource !== undefined) {
-        chrome.runtime.sendMessage({ action: "reload", localhostPort, https, thisTab, fileSource, hotReload, watchJSON }, res => console.log(res));
-    }
-    return;
-};
 
 const toggleInjectFile = async (args) => {
     const {
         formState,
         messageAction
     } = args;
-    const isConnectionActive = testConnection();
+    const isConnectionActive = await testConnection();
     if (isConnectionActive) {
         setLocalStorage();
 
@@ -187,34 +124,102 @@ const toggleInjectFile = async (args) => {
             watchJSON,
         } = getLocalStorage();
 
-        let { fileSource, hotReload, } = getLocalStorage();
+        let {
+            fileSource,
+            hotReload,
+        } = getLocalStorage();
 
-        const filePath = '' + fileSource;
+        const filePath = copyString(fileSource);
+
         const isUrl = checkIsUrl(fileSource);
 
-        if (!isUrl) {
-            const uriEncodedFileSource = encodeURIComponent(fileSource);
-            const protocol = https ? 'https' : 'http';
-            fileSource = `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
-        }
+        if (!isUrl) { fileSource = createLocalhostPath(fileSource, https, localhostPort) };
 
-        if (isUrl || (!isUrl /*&& testConnection()*/ && await testFileFetch(fileSource))) {
+        if (checkIsNotEmptyUrl() && (isUrl || (!isUrl && await testFileFetch(fileSource)))) {
 
             hotReload = messageAction === 'stopInjection' ? false : hotReload;
 
-            if(!isUrl) initializeHotReload(filePath, localhostPort, https, thisTab, hotReload, watchJSON);
+            if (!isUrl) initializeHotReload(filePath, localhostPort, https, thisTab, hotReload, watchJSON);
 
             actionForm(formState);
-            await sendMessageToContent({ action: messageAction, fileSource, injectionDelay, hotReload, watchJSON });
-        }
-        chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
-        chrome.browserAction.setBadgeText({ text: "ON" });
 
+            const params = await initializeContentMessageAction({ action: messageAction, fileSource, injectionDelay, hotReload, watchJSON });
+
+            handleParamsForGraphic(params);
+
+        } else if (!checkIsNotEmptyUrl()) {
+            setDOMElementProperty('error', 'innerText', 'file path can\'t be empty');
+            setDOMElementProperty('injectFile', 'checked', false);
+            actionForm('enable');
+        }
     } else {
         setDOMElementProperty('injectFile', 'checked', false);
         setDOMElementProperty('error', 'innerText', 'filesystem-server not connected');
-        chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
-        chrome.browserAction.setBadgeText({ text: "OFF" });
+        // chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
+        // chrome.browserAction.setBadgeText({ text: "OFF" });
     }
 
 };
+
+const initializeContentMessageAction = async (args) => {
+
+    const response = await sendMessageToContent(args);
+
+    const { isInjectorActive, fileSource } = handleResponseFromContent(response);
+
+    const fssConnected = await testConnection();
+
+    const areWatchersConsistent = await testWatchers();
+
+    return { fssConnected, isInjectorActive, areWatchersConsistent, };
+
+};
+
+const handleResponseFromContent = (res) => {
+    const isInjectorActive = res && res.isInjectorActive ? res.isInjectorActive : 'false';
+    const fileSource = res && res.fileSource ? res.fileSource : null;
+    return { isInjectorActive, fileSource };
+};
+
+
+const handleParamsForGraphic = (params) => {
+    const {
+        fssConnected,
+        isInjectorActive,
+        areWatchersConsistent,
+    } = params;
+
+    if (isInjectorActive === 'true') {
+        setDOMElementProperty('injectorBadge', 'backgroundColor', '#1beabd');
+        setDOMElementProperty('injectorText', 'innerText', 'INJECTION ACTIVE');
+    } else {
+        setDOMElementProperty('injectorBadge', 'backgroundColor', '#FF4600');
+        setDOMElementProperty('injectorText', 'innerText', 'INACTIVE');
+        // chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
+        // chrome.browserAction.setBadgeText({ text: "OFF" });
+    }
+
+    if (fssConnected /*&& areWatchersConsistent*/ && isInjectorActive === 'true') {
+        // chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
+        // chrome.browserAction.setBadgeText({ text: "ON" });
+        // actionForm('disable');
+    } else {
+        // chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
+        // chrome.browserAction.setBadgeText({ text: "OFF" });
+    }
+
+};
+
+
+const setupFormAction = (params) => {
+    const {
+        areWatchersConsistent,
+        fssConnected,
+        isInjectorActive,
+    } = params;
+    if(fssConnected && isInjectorActive === 'true'){
+        actionForm('disable');
+        setDOMElementProperty('injectFile', 'checked', true);
+    }
+
+}

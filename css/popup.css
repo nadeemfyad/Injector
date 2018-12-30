@@ -19,6 +19,8 @@ body{
 #httpsWrap{
     margin-left: 20px;
     margin-top: 4px;
+    position: absolute;
+    left: 143px;
 }
 
 #formWrapper{

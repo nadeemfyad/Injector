@@ -81,13 +81,14 @@ const testConnection = async () => {
 const testFileFetch = async (fileSource) => {
     const fileSourceTest = fileSource.replace('/files/', '/exists/');
 
-    const res = await fetch(fileSourceTest).catch(((err) => { console.log(err); }));;
+    const res = await fetch(fileSourceTest).catch(((err) => { console.log(err); }));
+    console.log(res);
     if (res && res.ok) {
         const json = await res.json();
 
         if (json.fileExists === 'true') {
-            setDOMElementProperty('injectFile', 'checked', true);
-            setDOMElementProperty('error', 'innerText', '');
+            // setDOMElementProperty('injectFile', 'checked', true);
+            // setDOMElementProperty('error', 'innerText', '');
             return true;
         } else {
             setDOMElementProperty('injectFile', 'checked', false);

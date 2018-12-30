@@ -45,10 +45,32 @@ const getTabId = async () => {
     return thisTab;
 };
 
+
+const sendMessageToContent = async (args) => {
+    const tabID = await getTabId();
+    const sendMessage = new Promise((resolve, reject) => {
+        chrome.tabs.sendMessage(tabID, args, res => {
+            resolve(res);
+        });
+    });
+    return await sendMessage.then(res => res);
+};
+
+const sendMessageToBackground = (msg) => {
+    chrome.runtime.sendMessage(msg, res => console.log(`Response from background: ${res}`));
+};
+
 const checkIsUrl = (string) => {
     const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
     return urlPattern.test(string);
 };
+
+const checkIsNotEmptyUrl = () => {
+    const {
+        fileSource,
+    } = getLocalStorage();
+    return fileSource !== null && fileSource !== undefined && fileSource !== '';
+}
 
 const actionForm = (action) => {
     let disabled, backgroundColor;
@@ -74,9 +96,10 @@ const actionForm = (action) => {
         input.style.backgroundColor = backgroundColor;
         input.style.transition = "all .5s";
         if (input.type === 'checkbox') {
-            if(!input.checked){
+            console.log(input);
+            if (!input.checked) {
                 input.parentElement.parentElement.style.opacity = opacity;
-                input.parentElement.parentElement.style.transition = "all .3s"; 
+                input.parentElement.parentElement.style.transition = "all .3s";
             } else {
                 input.parentElement.style.color = textColor;
             }
@@ -86,4 +109,45 @@ const actionForm = (action) => {
         });
     });
 
+};
+
+const setFormValuesFromStorage = () => {
+    const {
+        injectionDelay,
+        fileSource,
+        localhostPort,
+        hotReload,
+        https,
+        watchJSON,
+    } = getLocalStorage();
+
+    if (fileSource) setDOMElementProperty('fileSource', 'value', fileSource);
+
+    if (injectionDelay) setDOMElementProperty('injectionDelay', 'value', injectionDelay);
+
+    if (localhostPort) setDOMElementProperty('localhostPort', 'value', localhostPort);
+
+    if (hotReload !== null) setDOMElementProperty('hotReload', 'checked', hotReload);
+
+    if (https !== null) setDOMElementProperty('https', 'checked', https);
+
+    if (watchJSON !== null) setDOMElementProperty('watchJSON', 'checked', watchJSON);
+};
+
+
+const initializeHotReload = (fileSource, localhostPort, https, thisTab, hotReload, watchJSON) => {
+    if (fileSource && fileSource !== '' && fileSource !== undefined) {
+        sendMessageToBackground({ action: "reload", localhostPort, https, thisTab, fileSource, hotReload, watchJSON });
+    }
+    return;
+};
+
+const copyString = (string) => {
+    return '' + string;
+};
+
+const createLocalhostPath = (fileSource, https, localhostPort, ) => {
+    const uriEncodedFileSource = encodeURIComponent(fileSource);
+    const protocol = https ? 'https' : 'http';
+    return `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
 };
