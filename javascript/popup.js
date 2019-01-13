@@ -22,9 +22,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setupFormAction(params);
 
-
-    document.querySelectorAll('input').forEach(element => element.addEventListener('blur', () => {
+    document.querySelectorAll('input').forEach(element => element.addEventListener('blur', async () => {
+        console.log('chnage');
+        let params = await initializeContentMessageAction({ action: 'requestStatus' });
         setLocalStorage();
+        setupFormAction(params);
     }));
 
 
@@ -94,11 +96,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         switch (injectFile) {
             case true:
-                toggleInjectFile({ formState: 'disable', messageAction: 'setFileSource' });
+                toggleInjectFile({ injectFile, formState: 'disable', messageAction: 'setFileSource' });
                 break;
             case false:
             default:
-                toggleInjectFile({ formState: 'enable', messageAction: 'stopInjection' });
+                toggleInjectFile({ injectFile, formState: 'enable', messageAction: 'stopInjection' });
                 break;
         }
 
@@ -109,11 +111,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 const toggleInjectFile = async (args) => {
     const {
+        injectFile,
         formState,
         messageAction
     } = args;
+
+    let {
+        fileSource,
+        hotReload,
+    } = getLocalStorage();
+
+    const isUrl = checkIsUrl(fileSource);
+
+    if(!injectFile && !isUrl) toggleLocalForm('show');
+
     const isConnectionActive = await testConnection();
-    if (isConnectionActive) {
+
+    if (isConnectionActive || isUrl) {
         setLocalStorage();
 
         const {
@@ -124,14 +138,7 @@ const toggleInjectFile = async (args) => {
             watchJSON,
         } = getLocalStorage();
 
-        let {
-            fileSource,
-            hotReload,
-        } = getLocalStorage();
-
         const filePath = copyString(fileSource);
-
-        const isUrl = checkIsUrl(fileSource);
 
         if (!isUrl) { fileSource = createLocalhostPath(fileSource, https, localhostPort) };
 
@@ -141,7 +148,7 @@ const toggleInjectFile = async (args) => {
 
             if (!isUrl) initializeHotReload(filePath, localhostPort, https, thisTab, hotReload, watchJSON);
 
-            actionForm(formState);
+            actionForm(formState, isUrl);
 
             const params = await initializeContentMessageAction({ action: messageAction, fileSource, injectionDelay, hotReload, watchJSON });
 
@@ -150,7 +157,7 @@ const toggleInjectFile = async (args) => {
         } else if (!checkIsNotEmptyUrl()) {
             setDOMElementProperty('error', 'innerText', 'file path can\'t be empty');
             setDOMElementProperty('injectFile', 'checked', false);
-            actionForm('enable');
+            actionForm('enable', isUrl);
         }
     } else {
         setDOMElementProperty('injectFile', 'checked', false);
@@ -184,9 +191,7 @@ const handleResponseFromContent = (res) => {
 
 const handleParamsForGraphic = (params) => {
     const {
-        fssConnected,
         isInjectorActive,
-        areWatchersConsistent,
     } = params;
 
     if (isInjectorActive === 'true') {
@@ -195,31 +200,31 @@ const handleParamsForGraphic = (params) => {
     } else {
         setDOMElementProperty('injectorBadge', 'backgroundColor', '#FF4600');
         setDOMElementProperty('injectorText', 'innerText', 'INACTIVE');
-        // chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
-        // chrome.browserAction.setBadgeText({ text: "OFF" });
     }
 
-    if (fssConnected /*&& areWatchersConsistent*/ && isInjectorActive === 'true') {
-        // chrome.browserAction.setBadgeBackgroundColor({ color: [68, 189, 169, 100] });
-        // chrome.browserAction.setBadgeText({ text: "ON" });
-        // actionForm('disable');
-    } else {
-        // chrome.browserAction.setBadgeBackgroundColor({ color: [255, 70, 0, 100] });
-        // chrome.browserAction.setBadgeText({ text: "OFF" });
-    }
 
 };
 
 
 const setupFormAction = (params) => {
+
     const {
-        areWatchersConsistent,
         fssConnected,
         isInjectorActive,
     } = params;
-    if(fssConnected && isInjectorActive === 'true'){
-        actionForm('disable');
+
+    const { fileSource } = getLocalStorage();
+
+    const isUrl = checkIsUrl(fileSource);
+
+    if (fssConnected && isInjectorActive === 'true' && checkIsNotEmptyUrl()) {
+        actionForm('disable', isUrl);
         setDOMElementProperty('injectFile', 'checked', true);
+    }
+    else if(isUrl){
+        toggleLocalForm('hide');
+    } else if(!isUrl){
+        toggleLocalForm('show');
     }
 
 }

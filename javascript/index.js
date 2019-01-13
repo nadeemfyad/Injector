@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
             case 'requestStatus':
             default:
-                console.log('requestStatus');
+                // console.log('requestStatus');
                 sendResponse({ isInjectorActive: isInjectorActive, fileSource: injectorFileSource });
                 break;
         }

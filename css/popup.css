@@ -1,77 +1,95 @@
-
-html{
+html {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
     height: fit-content;
     background-color: #333333;
-    padding:0;
-  }
-body{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"!important;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
     /* color: #4b4b4b; */
     color: white;
     border-radius: 5px;
 }
+
 #header {
     display: flex;
 }
 
-#httpsWrap{
+#httpsWrap {
     margin-left: 20px;
     margin-top: 4px;
     position: absolute;
     left: 143px;
 }
 
-#formWrapper{
+#formWrapper {
     width: 505px;
     /* height: 150px; */
 }
 
-#fileForm span{
+#fileForm span {
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
-#fileForm{
+#fileForm {
     margin-top: 20px;
 }
 
-#buttonWrapper,#message,#error{
+#buttonWrapper,
+#message,
+#error {
     text-align: -webkit-center;
     display: flex;
     justify-content: center;
-
 }
 
-#error{
-    color: #FF4600;
+#messages {
+    position: inherit;
+    height: 30px;
+    justify-content: center;
+    display: flex;
+}
+
+.feedbackText {
+    position: absolute;
     font-weight: 600;
     margin-bottom: 3px;
     margin-top: 7px;
     height: 15px !important;
 }
 
-#fileSubmit,#removeFile{
+#error {
+    color: #FF4600;
+}
+
+#message {
+    color: #00a2ff;
+}
+
+#fileSubmit,
+#removeFile {
     cursor: pointer;
     width: 100px;
     height: 22px;
     background-color: #ffc04d;
     text-align: inherit;
     padding-top: 7px;
-    margin:10px; 
+    margin: 10px;
     border: 1px solid #4b4b4b;
     border-radius: 5px;
 }
 
-#injectorBadge{
+#injectorBadge {
     margin-top: 0px !important;
 }
 
-#injectorText{
+#injectorText {
     margin-top: 1px !important;
 }
 
-#fileSource{
+#fileSource {
     display: grid;
     height: 23px;
     font-size: 13px;
@@ -84,32 +102,33 @@ body{
     height: 20px;
 } */
 
-#injectionDelayWrap{
+#injectionDelayWrap {
     display: flex;
     margin: 0px 3px;
 }
 
-#fssWrap{
+#fssWrap {
     margin-left: 5px;
     margin-right: 15px;
 }
 
-#localhostPort{
+#localhostPort {
     height: 25px;
 }
 
-#connectionTable{
+#connectionTable {
     display: -webkit-box;
     position: absolute;
     top: 5px;
     right: 10px;
 }
 
-#connectionTable span{
+#connectionTable span {
     margin-top: 5px;
 }
 
-#connectionBadge,#injectorBadge{
+#connectionBadge,
+#injectorBadge {
     width: 14px;
     height: 15px;
     display: block;
@@ -119,22 +138,22 @@ body{
     margin-top: 7px;
 }
 
-#connectionStatus{
+#connectionStatus {
     margin-top: 7px;
     cursor: pointer;
 }
 
-
-#injectorStatus{
+#injectorStatus {
     display: flex;
     margin-top: 5px;
 }
+
 /* 
 .inputText{
     outline: inset 1px #545454;
 } */
 
-#config{
+#config {
     margin-top: 27px;
     border: solid #909090 1px;
     border-radius: 10px;
@@ -146,16 +165,17 @@ body{
     background-color: #2b2b2b;
 }
 
-#hotReloadWrap,#watchJSONWrap{
+#hotReloadWrap,
+#watchJSONWrap {
     margin-left: 20px;
     margin-right: 20px;
-} 
+}
 
-.inputLabel{
+.inputLabel {
     align-self: center;
 }
 
-#delayOuterWrap{
+#delayOuterWrap {
     display: flex;
     position: relative;
     top: -5px;
@@ -163,7 +183,7 @@ body{
     margin-right: 20px;
 }
 
-#injectorLogo{
+#injectorLogo {
     width: 70px;
     height: 25px;
     position: absolute;
@@ -171,7 +191,7 @@ body{
     bottom: 5px;
 }
 
-#recreateLogo{
+#recreateLogo {
     width: 40px;
     height: 41px;
     position: absolute;
@@ -179,36 +199,37 @@ body{
     bottom: 3px;
 }
 
-#cloudiqLogo{
+#cloudiqLogo {
     width: 100px;
     position: absolute;
     left: 6px;
     bottom: 8px;
 }
 
-.binIconWrap{
+.binIconWrap {
     cursor: pointer;
     position: relative;
     height: inherit;
     right: 30px;
 }
-#binIcon{
+
+#binIcon {
     font-size: 1.5em;
     color: #f3a13a;
     position: absolute;
     bottom: 0px;
-    left:0px;
+    left: 0px;
 }
 
-#binIcon:hover{
+#binIcon:hover {
     color: #f36e3a;
 }
 
-#binIcon:active{
+#binIcon:active {
     color: #ffcb8b;
 }
 
-[tooltip]:after{
+[tooltip]:after {
     content: attr(tooltip);
     border: solid 1px #f36e3a;
     border-radius: 4px;
@@ -220,22 +241,23 @@ body{
     left: -360%;
     background-color: #333333;
     white-space: nowrap;
-    opacity:0;
+    opacity: 0;
 }
 
 [tooltip]::before {
     content: "";
     position: absolute;
-    top:-7px;
-    left:50%;
+    top: -7px;
+    left: 50%;
     transform: translateX(-50%);
     border-width: 4px 6px 0 6px;
     border-style: solid;
     border-color: #f36e3a transparent transparent transparent;
     z-index: 100;
-    opacity:0;
+    opacity: 0;
 }
 
-[tooltip]:hover::after,[tooltip]:hover::before {
-    opacity:1
- }
+[tooltip]:hover::after,
+[tooltip]:hover::before {
+    opacity: 1
+}

@@ -38,10 +38,14 @@ const testWatchers = async () => {
 
 const testConnection = async () => {
     const {
+        fileSource,
         localhostPort,
         https,
     } = getLocalStorage();
-    if (localhostPort) {
+
+    const isUrl = checkIsUrl(fileSource);
+    console.log(isUrl);
+    if (localhostPort && !isUrl) {
         const protocol = https ? 'https' : 'http';
         const url = `${protocol}://localhost:${localhostPort}/testFSSConnection`;
         const res = await fetch(url).catch(((err) => { console.log(err); }));
@@ -67,13 +71,21 @@ const testConnection = async () => {
             setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
             localStorage.setItem('fss-connected', false);
             setDOMElementProperty('injectFile', 'checked', false);
+            setDOMElementProperty('message', 'innerText', '');
             setDOMElementProperty('error', 'innerText', 'No Connection. Check url, port and that fss is running.');
         }
-    } else {
+    } else if(!localhostPort &&!isUrl){
         setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT CONNECTED');
         setDOMElementProperty('connectionBadge', 'backgroundColor', '#FF4600');
         localStorage.setItem('fss-connected', false);
         setDOMElementProperty('injectFile', 'checked', false);
+    } else if(isUrl){
+        const { fileHost } = deconstructUrl(fileSource);
+        setDOMElementProperty('connectionStatus', 'innerText', 'FSS NOT NEEDED');
+        setDOMElementProperty('connectionBadge', 'backgroundColor', '#00a2ff');
+        localStorage.setItem('fss-connected', false);
+        setDOMElementProperty('message', 'innerText', `Fetching from ${fileHost}`);
+        setDOMElementProperty('error', 'innerText', '');
     }
 };
 

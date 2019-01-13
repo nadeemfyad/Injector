@@ -61,7 +61,8 @@ const sendMessageToBackground = (msg) => {
 };
 
 const checkIsUrl = (string) => {
-    const urlPattern = /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(\:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
+    const urlPattern = /^http|^www/i;
+    console.log(urlPattern.test(string));
     return urlPattern.test(string);
 };
 
@@ -72,7 +73,7 @@ const checkIsNotEmptyUrl = () => {
     return fileSource !== null && fileSource !== undefined && fileSource !== '';
 }
 
-const actionForm = (action) => {
+const actionForm = (action, isUrl) => {
     let disabled, backgroundColor;
     switch (action) {
         case 'disable':
@@ -96,8 +97,7 @@ const actionForm = (action) => {
         input.style.backgroundColor = backgroundColor;
         input.style.transition = "all .5s";
         if (input.type === 'checkbox') {
-            console.log(input);
-            if (!input.checked) {
+            if (!input.checked && !isUrl && opacity !== 10) {
                 input.parentElement.parentElement.style.opacity = opacity;
                 input.parentElement.parentElement.style.transition = "all .3s";
             } else {
@@ -150,4 +150,35 @@ const createLocalhostPath = (fileSource, https, localhostPort, ) => {
     const uriEncodedFileSource = encodeURIComponent(fileSource);
     const protocol = https ? 'https' : 'http';
     return `${protocol}://localhost:${localhostPort}/files/${uriEncodedFileSource}`;
+};
+
+const deconstructUrl = (url) => {
+    const splitUrlRegex = /(.+:\/\/)?([^\/]+)(\/.*)*/i;
+    const urlParts = splitUrlRegex.exec(url);
+    // console.log(urlParts);
+    return {
+        fileUrl: urlParts[0],
+        fileProtocol: urlParts[1],
+        fileHost: urlParts[2],
+        filePath: urlParts[3],
+    }
+};
+
+const toggleLocalForm = (action) => {
+    const inputs = document.querySelectorAll('input[type=checkbox]:not(#injectFile)');
+    const portNumber = document.getElementById('connectionTable');
+    let opacity;
+    switch (action) {
+        case 'hide':
+        opacity = 0;
+        break;
+        case 'show':
+        opacity = 10;
+        break;
+        default: break;
+    }
+    inputs.forEach(input => {
+        input.parentElement.parentElement.style.opacity = opacity;
+    });
+    portNumber.style.opacity = opacity;
 };
